@@ -1,0 +1,3705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>먹방 레이스 v3</title>
+  <style>
+    :root {
+      --ink: #2d2a32;
+      --paper: rgba(255,255,255,.9);
+      --shadow: 0 18px 48px rgba(65, 51, 89, .2);
+      --red: #ff4f7b;
+      --orange: #ff8a3d;
+      --yellow: #ffd54f;
+      --green: #36b37e;
+      --blue: #5e8cff;
+      --purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(135deg, #fff7d6, #ffe0f0);
+    }
+
+    input, button {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 20px;
+      padding: 14px 20px;
+      font-size: 18px;
+      font-weight: 1000;
+      color: white;
+      background: linear-gradient(135deg, #ff7a59, #ff3d85);
+      box-shadow: 0 10px 22px rgba(255, 61, 133, .25);
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #5e8cff, #8b5cf6);
+      box-shadow: 0 10px 22px rgba(94, 140, 255, .22);
+    }
+
+    button.green {
+      background: linear-gradient(135deg, #35c78a, #169b62);
+      box-shadow: 0 10px 22px rgba(22, 155, 98, .22);
+    }
+
+    button.ghost {
+      background: rgba(255,255,255,.74);
+      color: #333;
+      border: 2px solid rgba(0,0,0,.08);
+      box-shadow: none;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+    .screen {
+      width: min(1160px, 100%);
+      height: min(760px, 100%);
+      border-radius: 34px;
+      background: rgba(255,255,255,.42);
+      box-shadow: var(--shadow);
+      border: 2px solid rgba(255,255,255,.65);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(6px);
+    }
+
+    .hidden { display: none !important; }
+
+    #startScreen {
+      padding: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px;
+      background:
+        radial-gradient(circle at 14% 16%, #fff0a8 0 9%, transparent 10%),
+        radial-gradient(circle at 88% 18%, #c8f6ff 0 10%, transparent 11%),
+        radial-gradient(circle at 74% 84%, #ffd3e5 0 13%, transparent 14%),
+        linear-gradient(135deg, #fff8ca, #ffe0ef 52%, #dff9ff);
+    }
+
+    .titleWrap {
+      text-align: center;
+      position: relative;
+    }
+
+    .gameTitle {
+      font-size: clamp(34px, 5vw, 66px);
+      line-height: 1;
+      margin: 0;
+      letter-spacing: -1px;
+      text-shadow: 0 8px 0 rgba(255,255,255,.86);
+    }
+
+    .subtitle {
+      margin: 9px 0 0;
+      font-size: clamp(15px, 2vw, 22px);
+      font-weight: 900;
+      color: #655b6f;
+    }
+
+    .startGrid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.78);
+      border-radius: 28px;
+      padding: 14px;
+      box-shadow: 0 12px 28px rgba(33,28,48,.1);
+      border: 2px solid rgba(255,255,255,.76);
+      min-height: 0;
+    }
+
+    .panelTitle {
+      margin: 0 0 10px;
+      font-size: clamp(19px, 2.2vw, 27px);
+      line-height: 1.05;
+      font-weight: 1000;
+    }
+
+    .setupBox {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .nameInput {
+      width: 100%;
+      height: 54px;
+      border-radius: 18px;
+      border: 3px solid rgba(139,92,246,.18);
+      background: rgba(255,255,255,.92);
+      padding: 0 16px;
+      font-size: 22px;
+      font-weight: 900;
+      color: #2d2a32;
+      outline: none;
+    }
+
+    .nameInput:focus {
+      border-color: rgba(139,92,246,.56);
+    }
+
+    .difficultyGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .diffBtn {
+      color: #43394c;
+      background: rgba(255,255,255,.78);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,.04);
+      border: 3px solid transparent;
+      border-radius: 20px;
+      padding: 12px 8px;
+      min-height: 74px;
+      font-size: 16px;
+    }
+
+    .diffBtn small {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 850;
+      color: #746b7c;
+      line-height: 1.2;
+    }
+
+    .diffBtn.selected {
+      border-color: #ffbc38;
+      background: #fff7d1;
+      outline: 4px solid rgba(255,188,56,.24);
+    }
+
+    .characterGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .charCard {
+      background: rgba(255,255,255,.82);
+      border: 4px solid transparent;
+      border-radius: 26px;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      align-items: center;
+      text-align: center;
+      gap: 7px;
+      box-shadow: 0 10px 22px rgba(33,28,48,.1);
+      transition: transform .15s ease, border .15s ease;
+      color: var(--ink);
+    }
+
+    .charCard:active { transform: scale(.98); }
+
+    .charCard.selected {
+      border-color: #ffbc38;
+      background: #fff9df;
+      outline: 4px solid rgba(255, 188, 56, .25);
+    }
+
+    .charEmoji {
+      font-size: clamp(50px, 7vw, 92px);
+      line-height: 1;
+      filter: drop-shadow(0 8px 0 rgba(0,0,0,.06));
+    }
+
+    .charName {
+      font-size: clamp(18px, 2.1vw, 25px);
+      font-weight: 1000;
+      margin: 0;
+    }
+
+    .trait {
+      font-size: clamp(11px, 1.25vw, 15px);
+      line-height: 1.28;
+      font-weight: 850;
+      color: #544d5d;
+      background: rgba(255,255,255,.66);
+      padding: 9px;
+      border-radius: 16px;
+    }
+
+    .scoreList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 100%;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .scoreRow {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255,255,255,.82);
+      border-radius: 18px;
+      padding: 10px 12px;
+      font-weight: 900;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.03);
+    }
+
+    .rankBadge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #fff1b8;
+      font-weight: 1000;
+    }
+
+    .scoreMeta {
+      font-size: 12px;
+      color: #766c80;
+      margin-top: 2px;
+      font-weight: 850;
+    }
+
+    .emptyScore {
+      padding: 20px;
+      text-align: center;
+      font-weight: 900;
+      color: #786f7f;
+      line-height: 1.45;
+    }
+
+    .startActions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #gameScreen {
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.6), transparent 42%),
+        linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,244,190,.35));
+    }
+
+    #gameScreen.stage-fast {
+      background:
+        radial-gradient(circle at 12% 70%, rgba(255,230,88,.75) 0 8%, transparent 9%),
+        radial-gradient(circle at 88% 26%, rgba(255,96,96,.55) 0 10%, transparent 11%),
+        linear-gradient(180deg, #fff4ae 0%, #ffd2a1 54%, #f6fff3 100%);
+    }
+
+    #gameScreen.stage-dessert {
+      background:
+        radial-gradient(circle at 18% 24%, rgba(255,255,255,.9) 0 8%, transparent 9%),
+        radial-gradient(circle at 82% 74%, rgba(255,178,218,.75) 0 12%, transparent 13%),
+        linear-gradient(180deg, #ffe7f5 0%, #f4e4ff 55%, #fff7cf 100%);
+    }
+
+    #gameScreen.stage-spicy {
+      background:
+        radial-gradient(circle at 22% 34%, rgba(255,60,60,.56) 0 8%, transparent 9%),
+        radial-gradient(circle at 78% 60%, rgba(255,175,51,.68) 0 13%, transparent 14%),
+        linear-gradient(180deg, #ffe1b6 0%, #ffaaa4 58%, #fff0d6 100%);
+    }
+
+    #gameScreen.stage-final {
+      background:
+        radial-gradient(circle at 16% 18%, rgba(255,213,79,.84) 0 9%, transparent 10%),
+        radial-gradient(circle at 90% 24%, rgba(94,140,255,.52) 0 11%, transparent 12%),
+        radial-gradient(circle at 74% 82%, rgba(255,79,123,.5) 0 12%, transparent 13%),
+        linear-gradient(180deg, #efe5ff 0%, #dff9ff 52%, #fff7cc 100%);
+    }
+
+    #gameScreen.burning {
+      animation: burningBg .45s ease-in-out infinite alternate;
+    }
+
+    @keyframes burningBg {
+      from { filter: saturate(1.15) brightness(1.02); }
+      to { filter: saturate(1.45) brightness(1.08); }
+    }
+
+    #hud {
+      min-height: 82px;
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr .85fr .8fr .8fr 1.1fr;
+      gap: 9px;
+      align-items: center;
+      background: rgba(255,255,255,.74);
+      border-bottom: 2px solid rgba(255,255,255,.7);
+      z-index: 5;
+    }
+
+    .hudBox {
+      height: 58px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: rgba(255,255,255,.8);
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.04);
+      font-size: clamp(13px, 1.65vw, 18px);
+      font-weight: 1000;
+      text-align: center;
+      padding: 6px 9px;
+      white-space: nowrap;
+    }
+
+    #healthHearts { letter-spacing: 1px; }
+
+    #gameArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #stageBanner {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.88);
+      font-size: clamp(15px, 2vw, 21px);
+      font-weight: 1000;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #burningBadge {
+      position: absolute;
+      top: 62px;
+      left: 50%;
+      transform: translateX(-50%) scale(.88);
+      z-index: 5;
+      padding: 11px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff4f7b, #ffb347);
+      color: white;
+      font-size: clamp(19px, 3vw, 38px);
+      font-weight: 1000;
+      box-shadow: 0 14px 28px rgba(255,79,123,.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    #burningBadge.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    #decorations {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .9;
+    }
+
+    .deco {
+      position: absolute;
+      font-size: clamp(34px, 5vw, 70px);
+      filter: drop-shadow(0 10px 0 rgba(0,0,0,.05));
+      opacity: .62;
+      animation: floatDeco 3.8s ease-in-out infinite;
+    }
+
+    .deco:nth-child(2n) { animation-delay: -1.1s; }
+    .deco:nth-child(3n) { animation-delay: -2.2s; }
+
+    @keyframes floatDeco {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-10px) rotate(4deg); }
+    }
+
+    #characterStage {
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      transform: translate(-50%, -50%);
+      width: clamp(210px, 25vw, 310px);
+      height: clamp(250px, 30vw, 360px);
+      display: grid;
+      place-items: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #charBody {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+    }
+
+    #bigChar {
+      font-size: clamp(126px, 18vw, 220px);
+      line-height: 1;
+      filter: drop-shadow(0 18px 0 rgba(0,0,0,.06));
+      animation: bob 1.6s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.03); }
+    }
+
+    #faceBubble {
+      position: absolute;
+      top: 16%;
+      right: 0;
+      width: clamp(54px, 6vw, 82px);
+      height: clamp(54px, 6vw, 82px);
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,.92);
+      border: 4px solid rgba(255,255,255,.7);
+      box-shadow: 0 10px 22px rgba(0,0,0,.12);
+      font-size: clamp(29px, 4vw, 48px);
+      transform: scale(.92);
+      transition: transform .16s ease;
+    }
+
+    #faceBubble.bump {
+      transform: scale(1.12) rotate(5deg);
+    }
+
+    #mouth {
+      position: absolute;
+      left: 50%;
+      top: 61%;
+      transform: translate(-50%, -50%);
+      width: clamp(84px, 10vw, 130px);
+      height: clamp(48px, 6vw, 72px);
+      border-radius: 46%;
+      background: rgba(255, 175, 185, .22);
+      border: 4px dashed rgba(255, 93, 93, .5);
+      box-shadow: 0 0 0 8px rgba(255, 255, 255, .35);
+      transition: all .16s ease;
+    }
+
+    #mouth::before {
+      content: "";
+      position: absolute;
+      inset: 10% 12%;
+      border-radius: 46%;
+      background: rgba(255,255,255,.28);
+    }
+
+    #mouth.open {
+      height: clamp(74px, 8vw, 104px);
+      width: clamp(74px, 8vw, 104px);
+      background: radial-gradient(circle at 50% 30%, #ff9ea8 0 28%, #7a1626 29% 100%);
+      border-style: solid;
+      border-color: rgba(255, 90, 115, .65);
+      box-shadow: 0 0 0 10px rgba(255, 255, 255, .42), 0 12px 22px rgba(122,22,38,.15);
+    }
+
+    #mouth.open::before { display: none; }
+
+    #charBody.chew #bigChar {
+      animation: none;
+      transform: scale(1.06) translateY(-4px);
+    }
+
+    .food {
+      position: absolute;
+      width: clamp(58px, 7.4vw, 84px);
+      height: clamp(58px, 7.4vw, 84px);
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 12px 20px rgba(35, 25, 54, .16), inset 0 -5px 0 rgba(0,0,0,.04);
+      font-size: clamp(34px, 5vw, 54px);
+      z-index: 2;
+      touch-action: none;
+      cursor: grab;
+      transition: transform .08s ease, box-shadow .1s ease, opacity .2s ease;
+    }
+
+    .food:active { cursor: grabbing; }
+
+    .food.dragging {
+      z-index: 9;
+      transform: scale(1.12) rotate(3deg);
+      box-shadow: 0 22px 35px rgba(35, 25, 54, .24);
+    }
+
+    .food.special {
+      box-shadow: 0 14px 26px rgba(255, 176, 0, .24);
+    }
+
+    .food.burnFood {
+      animation: foodPulse .5s ease-in-out infinite alternate;
+      box-shadow: 0 15px 30px rgba(255,79,123,.22), inset 0 -5px 0 rgba(0,0,0,.04);
+    }
+
+    @keyframes foodPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .foodLabel {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      margin-top: 2px;
+      background: rgba(255,255,255,.94);
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 1000;
+      white-space: nowrap;
+      color: #584f61;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+    .food.dragging .foodLabel { display: block; }
+
+    #message {
+      position: absolute;
+      left: 50%;
+      top: 25%;
+      transform: translateX(-50%);
+      z-index: 10;
+      min-width: 180px;
+      max-width: min(82%, 620px);
+      padding: 14px 22px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.93);
+      box-shadow: 0 14px 28px rgba(35, 25, 54, .16);
+      font-size: clamp(20px, 3.4vw, 38px);
+      font-weight: 1000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .12s ease, transform .12s ease;
+    }
+
+    #message.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-8px) scale(1.02);
+    }
+
+    #controls {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      z-index: 6;
+      display: flex;
+      gap: 10px;
+    }
+
+
+
+    #eventToast {
+      position: absolute;
+      left: 50%;
+      top: 100px;
+      transform: translateX(-50%) translateY(-18px) scale(.92);
+      z-index: 16;
+      min-width: min(520px, 86%);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 16px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.96);
+      border: 5px solid rgba(255,213,79,.42);
+      box-shadow: 0 20px 42px rgba(0,0,0,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    #eventToast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .eventEmoji {
+      font-size: clamp(42px, 6vw, 76px);
+      filter: drop-shadow(0 8px 0 rgba(0,0,0,.08));
+    }
+
+    .eventText {
+      font-size: clamp(16px, 2.3vw, 27px);
+      line-height: 1.25;
+      font-weight: 1000;
+      text-align: left;
+      color: #3f2b36;
+      word-break: keep-all;
+    }
+
+    #cameraBadge {
+      position: absolute;
+      left: 50%;
+      top: 165px;
+      transform: translateX(-50%) scale(.88);
+      z-index: 15;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #5e8cff, #8b5cf6);
+      color: white;
+      box-shadow: 0 14px 28px rgba(94,140,255,.28);
+      font-size: clamp(16px, 2.3vw, 28px);
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    #cameraBadge.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: cameraBlink .55s ease-in-out infinite alternate;
+    }
+
+    @keyframes cameraBlink {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.25); }
+    }
+
+    #skillBtn {
+      background: linear-gradient(135deg, #35c78a, #169b62);
+      box-shadow: 0 10px 22px rgba(22,155,98,.22);
+      min-width: 158px;
+    }
+
+    #skillBtn.used,
+    #skillBtn:disabled {
+      background: rgba(255,255,255,.72);
+      color: #766c80;
+      border: 2px solid rgba(0,0,0,.08);
+      box-shadow: none;
+      cursor: default;
+    }
+
+    #skillBanner {
+      position: absolute;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%) translateY(20px) scale(.9);
+      z-index: 15;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.96);
+      border: 4px solid rgba(53,199,138,.32);
+      box-shadow: 0 15px 30px rgba(0,0,0,.14);
+      font-size: clamp(18px, 2.8vw, 34px);
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    #skillBanner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    #gameArea.screenShake,
+    .bossPanel.screenShake {
+      animation: screenShake .28s linear 2;
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-6px,3px); }
+      40% { transform: translate(6px,-3px); }
+      60% { transform: translate(-4px,-2px); }
+      80% { transform: translate(4px,2px); }
+      100% { transform: translate(0,0); }
+    }
+
+    #bossWarning {
+      position: absolute;
+      left: 50%;
+      top: 8%;
+      transform: translateX(-50%) scale(.88);
+      z-index: 6;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff1f4f, #ffb347);
+      color: white;
+      border: 5px solid rgba(255,255,255,.86);
+      box-shadow: 0 18px 34px rgba(255,31,79,.32);
+      font-size: clamp(24px, 4vw, 58px);
+      line-height: 1;
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #bossWarning.show {
+      opacity: 1;
+      animation: warningPulse .32s ease-in-out infinite alternate;
+    }
+
+    @keyframes warningPulse {
+      from { transform: translateX(-50%) scale(.92) rotate(-2deg); }
+      to { transform: translateX(-50%) scale(1.05) rotate(2deg); }
+    }
+
+    #overlay.heroMode .modal {
+      width: min(980px, 100%);
+      min-height: min(620px, 92%);
+      padding: 0;
+      overflow: hidden;
+      border-radius: 34px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: #fff;
+      position: relative;
+    }
+
+    .heroStage {
+      position: relative;
+      flex: 1;
+      min-height: 500px;
+      display: block;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .heroStage.fast {
+      background:
+        radial-gradient(circle at 16% 18%, rgba(255,232,113,.95) 0 10%, transparent 11%),
+        radial-gradient(circle at 84% 24%, rgba(255,120,120,.7) 0 12%, transparent 13%),
+        linear-gradient(180deg, #fff4aa 0%, #ffc98e 58%, #fff9dc 100%);
+    }
+
+    .heroStage.dessert {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.95) 0 9%, transparent 10%),
+        radial-gradient(circle at 80% 28%, rgba(255,181,225,.82) 0 13%, transparent 14%),
+        linear-gradient(180deg, #ffe9f7 0%, #efdfff 56%, #fff7d0 100%);
+    }
+
+    .heroStage.spicy {
+      background:
+        radial-gradient(circle at 18% 24%, rgba(255,84,84,.8) 0 10%, transparent 11%),
+        radial-gradient(circle at 84% 24%, rgba(255,177,64,.8) 0 14%, transparent 15%),
+        linear-gradient(180deg, #ffe0bc 0%, #ff9e92 56%, #fff1d8 100%);
+    }
+
+    .heroStage.final {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255,214,76,.92) 0 10%, transparent 11%),
+        radial-gradient(circle at 85% 24%, rgba(114,164,255,.68) 0 13%, transparent 14%),
+        radial-gradient(circle at 72% 84%, rgba(255,79,123,.48) 0 12%, transparent 13%),
+        linear-gradient(180deg, #efe4ff 0%, #dff8ff 56%, #fff8d3 100%);
+    }
+
+    .heroDecor {
+      position: absolute;
+      font-size: clamp(56px, 7vw, 118px);
+      filter: drop-shadow(0 10px 0 rgba(0,0,0,.07));
+      opacity: .9;
+      animation: heroFloat 3.2s ease-in-out infinite;
+    }
+
+    .heroDecor:nth-child(2n) { animation-delay: -1s; }
+    .heroDecor:nth-child(3n) { animation-delay: -1.8s; }
+
+    @keyframes heroFloat {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .heroCharacter {
+      position: absolute;
+      left: 7%;
+      bottom: 24px;
+      font-size: clamp(150px, 20vw, 290px);
+      line-height: 1;
+      filter: drop-shadow(0 16px 0 rgba(0,0,0,.08));
+      z-index: 2;
+    }
+
+    .heroFoodPile {
+      position: absolute;
+      right: 4%;
+      bottom: 28px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      font-size: clamp(82px, 10vw, 170px);
+      z-index: 2;
+      filter: drop-shadow(0 12px 0 rgba(0,0,0,.07));
+    }
+
+    .heroFoodPile span:nth-child(1) { transform: rotate(-8deg) translateY(8px); }
+    .heroFoodPile span:nth-child(2) { transform: rotate(5deg) translateY(-8px); }
+    .heroFoodPile span:nth-child(3) { transform: rotate(10deg) translateY(10px); }
+
+    .heroInfo {
+      position: absolute;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
+      z-index: 3;
+      width: min(680px, 88%);
+      margin: 0;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(5px);
+      border: 3px solid rgba(255,255,255,.72);
+      border-radius: 28px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.10);
+      padding: 12px 18px 14px;
+      text-align: center;
+    }
+
+    .heroLabel {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.94);
+      border: 3px solid rgba(255,255,255,.8);
+      box-shadow: 0 8px 20px rgba(0,0,0,.09);
+      font-weight: 1000;
+      font-size: clamp(14px, 2vw, 24px);
+      margin-bottom: 8px;
+    }
+
+    .heroTitle {
+      margin: 0;
+      font-size: clamp(24px, 3.2vw, 42px);
+      line-height: 1.05;
+      font-weight: 1000;
+      word-break: keep-all;
+      overflow-wrap: normal;
+    }
+
+    .heroStageNum {
+      display: inline-block;
+      font-size: clamp(16px, 2vw, 25px);
+      color: #ff4f7b;
+      margin-right: 8px;
+      letter-spacing: .5px;
+    }
+
+    .heroMainTitle {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .heroSub {
+      margin: 7px 0 0;
+      font-size: clamp(13px, 1.45vw, 17px);
+      line-height: 1.28;
+      font-weight: 900;
+      color: #5b5065;
+      word-break: keep-all;
+    }
+
+    .heroStats {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .heroStat {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.86);
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,.04);
+      font-size: clamp(12px, 1.35vw, 16px);
+      font-weight: 1000;
+    }
+
+    .heroActions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 18px 24px 24px;
+      position: relative;
+      z-index: 4;
+      background: rgba(255,255,255,.92);
+      border-top: 2px solid rgba(255,255,255,.8);
+    }
+
+    @media (max-width: 840px) {
+  
+    #eventToast {
+      position: absolute;
+      left: 50%;
+      top: 100px;
+      transform: translateX(-50%) translateY(-18px) scale(.92);
+      z-index: 16;
+      min-width: min(520px, 86%);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 16px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.96);
+      border: 5px solid rgba(255,213,79,.42);
+      box-shadow: 0 20px 42px rgba(0,0,0,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    #eventToast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .eventEmoji {
+      font-size: clamp(42px, 6vw, 76px);
+      filter: drop-shadow(0 8px 0 rgba(0,0,0,.08));
+    }
+
+    .eventText {
+      font-size: clamp(16px, 2.3vw, 27px);
+      line-height: 1.25;
+      font-weight: 1000;
+      text-align: left;
+      color: #3f2b36;
+      word-break: keep-all;
+    }
+
+    #cameraBadge {
+      position: absolute;
+      left: 50%;
+      top: 165px;
+      transform: translateX(-50%) scale(.88);
+      z-index: 15;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #5e8cff, #8b5cf6);
+      color: white;
+      box-shadow: 0 14px 28px rgba(94,140,255,.28);
+      font-size: clamp(16px, 2.3vw, 28px);
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    #cameraBadge.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: cameraBlink .55s ease-in-out infinite alternate;
+    }
+
+    @keyframes cameraBlink {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.25); }
+    }
+
+    #skillBtn {
+      background: linear-gradient(135deg, #35c78a, #169b62);
+      box-shadow: 0 10px 22px rgba(22,155,98,.22);
+      min-width: 158px;
+    }
+
+    #skillBtn.used,
+    #skillBtn:disabled {
+      background: rgba(255,255,255,.72);
+      color: #766c80;
+      border: 2px solid rgba(0,0,0,.08);
+      box-shadow: none;
+      cursor: default;
+    }
+
+    #skillBanner {
+      position: absolute;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%) translateY(20px) scale(.9);
+      z-index: 15;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.96);
+      border: 4px solid rgba(53,199,138,.32);
+      box-shadow: 0 15px 30px rgba(0,0,0,.14);
+      font-size: clamp(18px, 2.8vw, 34px);
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    #skillBanner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    #gameArea.screenShake,
+    .bossPanel.screenShake {
+      animation: screenShake .28s linear 2;
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-6px,3px); }
+      40% { transform: translate(6px,-3px); }
+      60% { transform: translate(-4px,-2px); }
+      80% { transform: translate(4px,2px); }
+      100% { transform: translate(0,0); }
+    }
+
+    #bossWarning {
+      position: absolute;
+      left: 50%;
+      top: 8%;
+      transform: translateX(-50%) scale(.88);
+      z-index: 6;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff1f4f, #ffb347);
+      color: white;
+      border: 5px solid rgba(255,255,255,.86);
+      box-shadow: 0 18px 34px rgba(255,31,79,.32);
+      font-size: clamp(24px, 4vw, 58px);
+      line-height: 1;
+      font-weight: 1000;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #bossWarning.show {
+      opacity: 1;
+      animation: warningPulse .32s ease-in-out infinite alternate;
+    }
+
+    @keyframes warningPulse {
+      from { transform: translateX(-50%) scale(.92) rotate(-2deg); }
+      to { transform: translateX(-50%) scale(1.05) rotate(2deg); }
+    }
+
+    #overlay.heroMode .modal {
+        min-height: min(540px, 94%);
+      }
+
+      .heroStage {
+        min-height: 380px;
+        padding: 14px;
+      }
+
+      .heroCharacter {
+        left: 3%;
+        bottom: 58px;
+        font-size: clamp(104px, 23vw, 180px);
+      }
+
+      .heroFoodPile {
+        right: 3%;
+        bottom: 54px;
+        font-size: clamp(62px, 14vw, 116px);
+        gap: 4px;
+      }
+
+      .heroInfo {
+        width: 92%;
+        top: 14px;
+        padding: 10px 12px 12px;
+      }
+
+      .heroMainTitle {
+        white-space: normal;
+      }
+
+      .heroSub {
+        font-size: 13px;
+      }
+    }
+
+
+    #bossChallenge {
+      position: absolute;
+      inset: 0;
+      z-index: 19;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,.28) 0 22%, transparent 44%),
+        rgba(45,42,50,.42);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    #bossChallenge.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bossPanel {
+      width: min(820px, 96%);
+      min-height: min(560px, 92%);
+      border-radius: 38px;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255,224,92,.72) 0 12%, transparent 13%),
+        radial-gradient(circle at 86% 22%, rgba(255,79,123,.45) 0 14%, transparent 15%),
+        linear-gradient(180deg, rgba(255,255,255,.97), rgba(255,244,210,.97));
+      box-shadow: 0 26px 70px rgba(0,0,0,.28);
+      border: 5px solid rgba(255,255,255,.74);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .bossHeader {
+      padding: 18px 20px 8px;
+    }
+
+    .bossHeader h2 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 62px);
+      line-height: 1.05;
+      font-weight: 1000;
+      color: #2d2a32;
+      word-break: keep-all;
+    }
+
+    .bossHeader p {
+      margin: 8px 0 0;
+      font-size: clamp(15px, 2vw, 23px);
+      font-weight: 900;
+      color: #695f72;
+      word-break: keep-all;
+    }
+
+    .bossFoodZone {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 310px;
+      overflow: hidden;
+    }
+
+    .bossGlow {
+      position: absolute;
+      width: min(400px, 68vw);
+      height: min(400px, 68vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,213,79,.9), rgba(255,79,123,.18) 56%, transparent 70%);
+      animation: bossGlow 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes bossGlow {
+      from { transform: scale(.9); opacity: .72; }
+      to { transform: scale(1.08); opacity: 1; }
+    }
+
+    #bossFoodButton {
+      --bossScale: 1;
+      position: relative;
+      z-index: 2;
+      width: clamp(190px, 30vw, 310px);
+      height: clamp(190px, 30vw, 310px);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 8px solid rgba(255,255,255,.9);
+      background: rgba(255,255,255,.8);
+      box-shadow: 0 24px 46px rgba(0,0,0,.18), inset 0 -12px 0 rgba(0,0,0,.05);
+      font-size: clamp(92px, 15vw, 178px);
+      cursor: pointer;
+      transform-origin: center;
+      touch-action: manipulation;
+      animation: bossBounce .72s ease-in-out infinite alternate;
+    }
+
+    #bossFoodButton:active {
+      transform: scale(.92);
+    }
+
+    @keyframes bossBounce {
+      from { transform: translateY(0) rotate(-3deg) scale(var(--bossScale)); }
+      to { transform: translateY(-10px) rotate(3deg) scale(calc(var(--bossScale) * 1.04)); }
+    }
+
+    .bossProgressWrap {
+      width: min(560px, 86%);
+      margin: 0 auto 16px;
+      background: rgba(255,255,255,.82);
+      border-radius: 999px;
+      padding: 8px;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,.04);
+    }
+
+    #bossProgressBar {
+      height: 22px;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #35c78a, #ffd54f, #ff4f7b);
+      transition: width .08s linear;
+    }
+
+    .bossFooter {
+      padding: 0 20px 20px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .bossStats {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bossChip {
+      background: rgba(255,255,255,.9);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-size: clamp(14px, 1.7vw, 20px);
+      font-weight: 1000;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.04);
+    }
+
+    #bossTapPop {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      top: 44%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(26px, 5vw, 62px);
+      font-weight: 1000;
+      color: #ff4f7b;
+      text-shadow: 0 4px 0 rgba(255,255,255,.88);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #bossTapPop.show {
+      animation: bossTapPop .28s ease-out;
+    }
+
+    @keyframes bossTapPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+      35% { opacity: 1; transform: translate(-50%, -72%) scale(1.18); }
+      100% { opacity: 0; transform: translate(-50%, -104%) scale(1); }
+    }
+
+    @media (max-width: 840px) {
+      .bossPanel {
+        min-height: min(520px, 94%);
+      }
+
+      .bossFoodZone {
+        min-height: 250px;
+      }
+
+      .bossHeader {
+        padding: 14px 14px 6px;
+      }
+
+      .bossFooter {
+        padding: 0 14px 16px;
+      }
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(45,42,50,.42);
+      backdrop-filter: blur(6px);
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .modal {
+      width: min(650px, 100%);
+      border-radius: 34px;
+      background: rgba(255,255,255,.96);
+      padding: 26px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.22);
+      text-align: center;
+      max-height: 94%;
+      overflow: auto;
+    }
+
+    .modal h2 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1.05;
+    }
+
+    .modal p {
+      margin: 8px 0;
+      font-size: clamp(17px, 2.4vw, 24px);
+      font-weight: 850;
+      color: #5a5363;
+      line-height: 1.4;
+    }
+
+    .modalActions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    #guide {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      z-index: 4;
+      max-width: 445px;
+      background: rgba(255,255,255,.82);
+      padding: 12px 14px;
+      border-radius: 22px;
+      font-size: clamp(12px, 1.5vw, 16px);
+      line-height: 1.35;
+      font-weight: 850;
+      color: #5a5363;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      pointer-events: none;
+    }
+
+    .pop {
+      position: absolute;
+      z-index: 30;
+      font-weight: 1000;
+      font-size: 28px;
+      pointer-events: none;
+      animation: floatPop .75s ease-out forwards;
+      text-shadow: 0 3px 0 rgba(255,255,255,.8);
+    }
+
+    @keyframes floatPop {
+      0% { opacity: 0; transform: translate(-50%, -10px) scale(.7); }
+      18% { opacity: 1; transform: translate(-50%, -24px) scale(1.12); }
+      100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
+    }
+
+
+    #gameScreen.burning {
+      animation: alarmFlash .28s linear infinite;
+    }
+
+    @keyframes alarmFlash {
+      0% {
+        background:
+          repeating-linear-gradient(45deg, rgba(255,0,0,.18) 0 28px, rgba(255,255,255,.18) 28px 56px),
+          linear-gradient(180deg, #ffefef 0%, #ffb3b3 58%, #fff 100%);
+      }
+      50% {
+        background:
+          repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 28px, rgba(255,0,0,.22) 28px 56px),
+          linear-gradient(180deg, #ffffff 0%, #ff7070 58%, #fff1f1 100%);
+      }
+      100% {
+        background:
+          repeating-linear-gradient(45deg, rgba(255,0,0,.18) 0 28px, rgba(255,255,255,.18) 28px 56px),
+          linear-gradient(180deg, #ffefef 0%, #ffb3b3 58%, #fff 100%);
+      }
+    }
+
+    #burnCountdown {
+      position: absolute;
+      left: 50%;
+      top: 41%;
+      transform: translate(-50%, -50%) scale(.85);
+      z-index: 12;
+      min-width: 180px;
+      padding: 18px 28px;
+      border-radius: 34px;
+      background: rgba(255,255,255,.95);
+      color: #e11d48;
+      border: 6px solid rgba(225,29,72,.78);
+      box-shadow: 0 18px 38px rgba(225,29,72,.28);
+      font-size: clamp(32px, 6vw, 78px);
+      line-height: 1;
+      font-weight: 1000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease, transform .15s ease;
+    }
+
+    #burnCountdown.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      animation: countdownPulse .42s ease-in-out infinite alternate;
+    }
+
+    #burnCountdown small {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(15px, 2.2vw, 25px);
+      color: #7f1d1d;
+    }
+
+    @keyframes countdownPulse {
+      from { transform: translate(-50%, -50%) scale(.96); }
+      to { transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    #momEvent {
+      position: absolute;
+      right: -420px;
+      bottom: 96px;
+      z-index: 18;
+      width: min(390px, 88%);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 30px 0 0 30px;
+      background: rgba(255,255,255,.96);
+      border: 5px solid rgba(255,79,123,.28);
+      box-shadow: 0 20px 42px rgba(0,0,0,.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: right .28s cubic-bezier(.2,1.2,.2,1), opacity .2s ease;
+    }
+
+    #momEvent.show {
+      right: 0;
+      opacity: 1;
+    }
+
+    .momEmoji {
+      font-size: clamp(54px, 7vw, 84px);
+      filter: drop-shadow(0 8px 0 rgba(0,0,0,.08));
+    }
+
+    .momBubble {
+      background: #fff3f6;
+      border-radius: 22px;
+      padding: 12px 14px;
+      font-size: clamp(16px, 2.2vw, 25px);
+      line-height: 1.25;
+      font-weight: 1000;
+      color: #3f2b36;
+      text-align: left;
+    }
+
+    #tearBubble {
+      position: absolute;
+      left: 50%;
+      top: 36%;
+      transform: translateX(-50%) scale(.85);
+      z-index: 17;
+      padding: 14px 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.96);
+      border: 4px solid rgba(94,140,255,.34);
+      box-shadow: 0 16px 32px rgba(94,140,255,.2);
+      font-size: clamp(22px, 3.8vw, 45px);
+      font-weight: 1000;
+      color: #2563eb;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease, transform .15s ease;
+    }
+
+    #tearBubble.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: tearWobble .32s ease-in-out infinite alternate;
+    }
+
+    @keyframes tearWobble {
+      from { transform: translateX(-50%) rotate(-2deg) scale(.98); }
+      to { transform: translateX(-50%) rotate(2deg) scale(1.03); }
+    }
+
+    @media (max-width: 840px) {
+      #app { padding: 6px; }
+      .screen { border-radius: 22px; }
+
+      #startScreen {
+        padding: 10px;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .startGrid {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+
+      .characterGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .charCard {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        text-align: left;
+        border-radius: 22px;
+      }
+
+      .charEmoji {
+        grid-row: span 2;
+      }
+
+      .trait {
+        grid-column: 2;
+      }
+
+      #hud {
+        grid-template-columns: repeat(2, 1fr);
+        min-height: 170px;
+      }
+
+      .hudBox {
+        height: 48px;
+        border-radius: 18px;
+      }
+
+      #guide { display: none; }
+
+      #controls {
+        right: 8px;
+        bottom: 8px;
+      }
+
+      #controls button {
+        padding: 11px 14px;
+        font-size: 15px;
+      }
+    }
+  </style>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ff4f7b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="먹방 레이스" />
+
+</head>
+<body>
+  <div id="app">
+    <section id="startScreen" class="screen">
+      <div class="titleWrap">
+        <h1 class="gameTitle">🍔 먹방 레이스 🍰</h1>
+        <p class="subtitle">이름을 넣고, 제한시간 안에 최고 점수에 도전!</p>
+      </div>
+
+      <div class="startGrid">
+        <div class="panel">
+          <h2 class="panelTitle">🎮 게임 준비</h2>
+          <div class="setupBox">
+            <div>
+              <label style="font-weight:1000;font-size:16px;">플레이어 이름</label>
+              <input id="playerName" class="nameInput" maxlength="10" placeholder="예: Jaemin" />
+            </div>
+
+            <div>
+              <label style="font-weight:1000;font-size:16px;">난이도</label>
+              <div class="difficultyGrid" id="difficultyGrid"></div>
+            </div>
+
+            <div>
+              <label style="font-weight:1000;font-size:16px;">캐릭터 선택</label>
+              <div class="characterGrid" id="characterGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panelTitle">🏆 최근 점수</h2>
+          <div class="scoreList" id="scoreList"></div>
+        </div>
+      </div>
+
+      <div class="startActions">
+        <button id="startBtn">게임 시작</button>
+        <button class="ghost" id="howBtn">규칙 보기</button>
+        <button class="ghost" id="clearScoresBtn">점수 지우기</button>
+        <button class="ghost" id="soundBtn">🔊 효과음 ON</button>
+        <button class="ghost" id="bgmBtn">🎵 BGM ON</button>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen hidden">
+      <div id="hud">
+        <div class="hudBox" id="charHud">캐릭터</div>
+        <div class="hudBox">점수 <span id="scoreText">0</span></div>
+        <div class="hudBox">스테이지 <span id="targetText">1/4</span></div>
+        <div class="hudBox">⏱️ <span id="timeText">60</span>초</div>
+        <div class="hudBox">🍽️ <span id="hungerText">5</span></div>
+        <div class="hudBox"><span id="healthHearts">❤️❤️❤️</span></div>
+      </div>
+
+      <div id="gameArea">
+        <div id="decorations"></div>
+        <div id="stageBanner">Stage 1</div>
+        <div id="burningBadge">🔥 버닝타임!</div>
+        <div id="burnCountdown">8<small>초 남음</small></div>
+        <div id="momEvent">
+          <div class="momEmoji">👩</div>
+          <div class="momBubble" id="momText">그만 좀 먹어!</div>
+        </div>
+        <div id="tearBubble">눈물이 나와 😭</div>
+        <div id="eventToast">
+          <div class="eventEmoji" id="eventEmoji">📣</div>
+          <div class="eventText" id="eventText">랜덤 이벤트!</div>
+        </div>
+        <div id="cameraBadge">🎥 먹방 카메라 ON! 점수 x1.5</div>
+        <div id="skillBanner">스킬 발동!</div>
+
+        <div id="bossChallenge" class="hidden">
+          <div class="bossPanel">
+            <div class="bossHeader">
+              <h2 id="bossTitle">대왕 음식 등장!</h2>
+              <p id="bossDesc">제한시간 안에 많이 터치해서 먹어치워요!</p>
+            </div>
+            <div class="bossFoodZone">
+              <div class="bossGlow"></div>
+              <div id="bossWarning">⚠️ WARNING!</div>
+              <button id="bossFoodButton" type="button">🍔</button>
+              <div id="bossTapPop">+1</div>
+            </div>
+            <div class="bossFooter">
+              <div class="bossProgressWrap"><div id="bossProgressBar"></div></div>
+              <div class="bossStats">
+                <span class="bossChip">⏱️ <span id="bossTimeText">8</span>초</span>
+                <span class="bossChip">👆 <span id="bossTapText">0</span>/<span id="bossNeedText">20</span></span>
+                <span class="bossChip">보너스 <span id="bossBonusText">100</span>점</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="characterStage">
+          <div id="charBody">
+            <div id="bigChar">🐰</div>
+            <div id="faceBubble">😋</div>
+            <div id="mouth"></div>
+          </div>
+        </div>
+
+        <div id="message"></div>
+
+        <div id="guide">
+          음식 카드를 입으로 끌어오세요. <b>배고픔 0</b>이면 체력이 줄어요.<br>
+          스테이지 끝에는 <b>대왕 음식</b>을 많이 터치해서 보너스 점수를 받을 수 있어요!
+        </div>
+
+        <div id="controls">
+          <button class="green" id="skillBtn">스킬</button>
+          <button class="ghost" id="soundBtnGame">🔊</button>
+          <button class="ghost" id="bgmBtnGame">🎵</button>
+          <button class="ghost" id="pauseBtn">일시정지</button>
+          <button class="secondary" id="restartBtn">처음으로</button>
+        </div>
+
+        <div id="overlay" class="hidden">
+          <div class="modal">
+            <h2 id="modalTitle">준비!</h2>
+            <p id="modalText">음식을 드래그해서 먹어보세요.</p>
+            <div class="modalActions" id="modalActions"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "mukbangRaceScoresV3";
+
+    const difficulties = {
+      easy: {
+        label: "쉬움",
+        icon: "🌱",
+        desc: "편하게 연습",
+        target: 0.82,
+        time: 1.12,
+        spawn: 1.08,
+        hungerMax: 7,
+        badExtra: 0,
+        burnBonus: 1.25
+      },
+      normal: {
+        label: "보통",
+        icon: "⭐",
+        desc: "기본 모드",
+        target: 1,
+        time: 1,
+        spawn: 1,
+        hungerMax: 5,
+        badExtra: 0,
+        burnBonus: 1.35
+      },
+      hard: {
+        label: "어려움",
+        icon: "🔥",
+        desc: "초등 고수용",
+        target: 1.18,
+        time: 0.92,
+        spawn: 0.86,
+        hungerMax: 4,
+        badExtra: 3,
+        burnBonus: 1.5
+      }
+    };
+
+    const characters = [
+      {
+        id: "tori",
+        name: "토리",
+        emoji: "🐰",
+        title: "매운맛 용사",
+        desc: "매운 음식 피해 감소. 매운 음식 점수 보너스.",
+        maxHp: 5,
+        spicyDamage: 0.35,
+        dessertBonus: 1.0,
+        spicyBonus: 1.2,
+        badDamage: 1.0,
+        allScore: 1.0,
+        mouthBonus: 0
+      },
+      {
+        id: "mochi",
+        name: "모찌",
+        emoji: "🐱",
+        title: "디저트 먹방왕",
+        desc: "디저트 점수 보너스. 매운 음식에는 약함.",
+        maxHp: 4,
+        spicyDamage: 1.7,
+        dessertBonus: 1.35,
+        spicyBonus: 1.0,
+        badDamage: 1.0,
+        allScore: 1.0,
+        mouthBonus: 0
+      },
+      {
+        id: "pukku",
+        name: "뿌꾸",
+        emoji: "🐻",
+        title: "든든한 대식가",
+        desc: "체력 많음. 나쁜 음식 피해 감소. 입 판정 넓음.",
+        maxHp: 7,
+        spicyDamage: 0.9,
+        dessertBonus: 1.0,
+        spicyBonus: 1.0,
+        badDamage: 0.65,
+        allScore: 0.95,
+        mouthBonus: 32
+      }
+    ];
+
+    const foods = {
+      burger: { emoji: "🍔", name: "햄버거", score: 12, category: "fast", kind: "good" },
+      pizza: { emoji: "🍕", name: "피자", score: 12, category: "fast", kind: "good" },
+      chicken: { emoji: "🍗", name: "치킨", score: 16, category: "fast", kind: "good" },
+      fries: { emoji: "🍟", name: "감튀", score: 10, category: "fast", kind: "good" },
+      hotdog: { emoji: "🌭", name: "핫도그", score: 12, category: "fast", kind: "good" },
+      sushi: { emoji: "🍣", name: "초밥", score: 16, category: "normal", kind: "good" },
+      ramen: { emoji: "🍜", name: "라면", score: 13, category: "normal", kind: "good" },
+
+      donut: { emoji: "🍩", name: "도넛", score: 12, category: "dessert", kind: "good" },
+      cake: { emoji: "🍰", name: "케이크", score: 14, category: "dessert", kind: "good" },
+      icecream: { emoji: "🍦", name: "아이스크림", score: 10, category: "dessert", kind: "good" },
+      chocolate: { emoji: "🍫", name: "초콜릿", score: 12, category: "dessert", kind: "good" },
+      candy: { emoji: "🍬", name: "사탕", score: 9, category: "dessert", kind: "good" },
+
+      tteok: { emoji: "🥘", name: "떡볶이", score: 16, category: "spicy", kind: "spicy", damage: 1 },
+      buldak: { emoji: "🍜", name: "불닭볶음면", score: 22, category: "spicy", kind: "spicy", damage: 2 },
+      chili: { emoji: "🌶️", name: "고추", score: 4, category: "spicy", kind: "spicy", damage: 2 },
+
+      goldenChicken: { emoji: "🌟", name: "황금치킨", score: 45, category: "special", kind: "special" },
+      megaBurger: { emoji: "🍔", name: "왕햄버거", score: 30, category: "special", kind: "special" },
+      milk: { emoji: "🥛", name: "우유", score: 6, category: "heal", kind: "heal", heal: 1 },
+      water: { emoji: "💧", name: "물", score: 4, category: "heal", kind: "heal", heal: 1 },
+
+      rotten: { emoji: "🍔", name: "수상한 버거", score: -12, category: "bad", kind: "bad", damage: 1 },
+      stone: { emoji: "🍪", name: "딱딱 쿠키", score: -14, category: "bad", kind: "bad", damage: 1 },
+      bomb: { emoji: "🍙", name: "폭탄 주먹밥", score: -18, category: "bad", kind: "bad", damage: 2 },
+      frost: { emoji: "🍦", name: "너무 차가운 아이스크림", score: -10, category: "bad", kind: "bad", damage: 1 },
+      fakeCake: { emoji: "🍰", name: "가짜 케이크", score: -13, category: "bad", kind: "bad", damage: 1 }
+    };
+
+    const stages = [
+      {
+        id: "fast",
+        css: "stage-fast",
+        name: "Stage 1 패스트푸드 먹방",
+        target: 150,
+        time: 50,
+        spawnMs: 900,
+        burnAt: [34, 18],
+        burnDuration: 8,
+        deco: ["🍔", "🍟", "🍕", "🌭", "🥤"],
+        list: [
+          ["burger", 19], ["pizza", 18], ["chicken", 16], ["fries", 20], ["hotdog", 14],
+          ["sushi", 6], ["milk", 5], ["goldenChicken", 3], ["rotten", 7], ["stone", 4]
+        ]
+      },
+      {
+        id: "dessert",
+        css: "stage-dessert",
+        name: "Stage 2 디저트 먹방",
+        target: 220,
+        time: 55,
+        spawnMs: 780,
+        burnAt: [36, 18],
+        burnDuration: 9,
+        deco: ["🍰", "🍩", "🍦", "🍫", "🍬"],
+        list: [
+          ["donut", 20], ["cake", 18], ["icecream", 18], ["chocolate", 18], ["candy", 12],
+          ["milk", 7], ["goldenChicken", 3], ["frost", 10], ["fakeCake", 5], ["stone", 3]
+        ]
+      },
+      {
+        id: "spicy",
+        css: "stage-spicy",
+        name: "Stage 3 매운 음식 챌린지",
+        target: 260,
+        time: 55,
+        spawnMs: 720,
+        burnAt: [38, 19],
+        burnDuration: 9,
+        deco: ["🌶️", "🍜", "🔥", "🥘", "🥛"],
+        list: [
+          ["ramen", 12], ["tteok", 20], ["buldak", 14], ["chili", 10],
+          ["water", 12], ["milk", 8], ["goldenChicken", 3], ["rotten", 4], ["bomb", 5]
+        ]
+      },
+      {
+        id: "final",
+        css: "stage-final",
+        name: "Stage 4 먹방 대회 결승",
+        target: 350,
+        time: 60,
+        spawnMs: 640,
+        burnAt: [45, 25, 12],
+        burnDuration: 8,
+        deco: ["🏆", "🌟", "🍔", "🍰", "🔥", "🥛"],
+        list: [
+          ["burger", 9], ["pizza", 9], ["chicken", 9], ["hotdog", 7], ["sushi", 8], ["ramen", 8],
+          ["donut", 9], ["cake", 9], ["icecream", 7], ["tteok", 9], ["buldak", 8],
+          ["water", 7], ["milk", 7], ["goldenChicken", 4], ["megaBurger", 3],
+          ["rotten", 7], ["stone", 5], ["bomb", 5], ["frost", 4], ["fakeCake", 3]
+        ]
+      }
+    ];
+
+
+    const bossPools = {
+      fast: [
+        { emoji: "🍔", name: "트리플 타워 버거", taps: 18, seconds: 8, bonus: 90 },
+        { emoji: "🍕", name: "패밀리 사이즈 피자", taps: 19, seconds: 8, bonus: 95 },
+        { emoji: "🍗", name: "대왕 치킨 버켓", taps: 20, seconds: 8, bonus: 100 },
+        { emoji: "🌭", name: "롱롱 치즈 핫도그", taps: 18, seconds: 7, bonus: 90 }
+      ],
+      dessert: [
+        { emoji: "🍫", name: "두쫀쿠 초코타워", taps: 20, seconds: 8, bonus: 110 },
+        { emoji: "🍡", name: "상하이 버터떡", taps: 21, seconds: 8, bonus: 115 },
+        { emoji: "🍰", name: "구름 생크림 케이크", taps: 20, seconds: 8, bonus: 110 },
+        { emoji: "🍩", name: "무지개 대왕 도넛", taps: 19, seconds: 7, bonus: 105 }
+      ],
+      spicy: [
+        { emoji: "🍜", name: "핵불닭볶음면", taps: 22, seconds: 8, bonus: 125 },
+        { emoji: "🥘", name: "로제라볶이 냄비", taps: 21, seconds: 8, bonus: 120 },
+        { emoji: "🍙", name: "불타는 대왕김밥", taps: 22, seconds: 8, bonus: 125 },
+        { emoji: "🌶️", name: "용암 고추 라면", taps: 23, seconds: 8, bonus: 130 }
+      ],
+      final: [
+        { emoji: "🍱", name: "전설의 먹방 도시락", taps: 24, seconds: 9, bonus: 160 },
+        { emoji: "🍔", name: "우주 대왕 버거", taps: 25, seconds: 9, bonus: 170 },
+        { emoji: "🍣", name: "황금 초대형 초밥", taps: 24, seconds: 9, bonus: 160 },
+        { emoji: "🎂", name: "챔피언 케이크 타워", taps: 26, seconds: 9, bonus: 180 }
+      ]
+    };
+
+
+    const els = {
+      startScreen: document.getElementById("startScreen"),
+      gameScreen: document.getElementById("gameScreen"),
+      characterGrid: document.getElementById("characterGrid"),
+      difficultyGrid: document.getElementById("difficultyGrid"),
+      playerName: document.getElementById("playerName"),
+      scoreList: document.getElementById("scoreList"),
+      startBtn: document.getElementById("startBtn"),
+      howBtn: document.getElementById("howBtn"),
+      clearScoresBtn: document.getElementById("clearScoresBtn"),
+      soundBtn: document.getElementById("soundBtn"),
+      gameArea: document.getElementById("gameArea"),
+      decorations: document.getElementById("decorations"),
+      charBody: document.getElementById("charBody"),
+      bigChar: document.getElementById("bigChar"),
+      faceBubble: document.getElementById("faceBubble"),
+      mouth: document.getElementById("mouth"),
+      message: document.getElementById("message"),
+      overlay: document.getElementById("overlay"),
+      modalTitle: document.getElementById("modalTitle"),
+      modalText: document.getElementById("modalText"),
+      modalActions: document.getElementById("modalActions"),
+      stageBanner: document.getElementById("stageBanner"),
+      burningBadge: document.getElementById("burningBadge"),
+      burnCountdown: document.getElementById("burnCountdown"),
+      momEvent: document.getElementById("momEvent"),
+      momText: document.getElementById("momText"),
+      tearBubble: document.getElementById("tearBubble"),
+      eventToast: document.getElementById("eventToast"),
+      eventEmoji: document.getElementById("eventEmoji"),
+      eventText: document.getElementById("eventText"),
+      cameraBadge: document.getElementById("cameraBadge"),
+      skillBanner: document.getElementById("skillBanner"),
+      bossChallenge: document.getElementById("bossChallenge"),
+      bossTitle: document.getElementById("bossTitle"),
+      bossDesc: document.getElementById("bossDesc"),
+      bossFoodButton: document.getElementById("bossFoodButton"),
+      bossWarning: document.getElementById("bossWarning"),
+      bossTapPop: document.getElementById("bossTapPop"),
+      bossProgressBar: document.getElementById("bossProgressBar"),
+      bossTimeText: document.getElementById("bossTimeText"),
+      bossTapText: document.getElementById("bossTapText"),
+      bossNeedText: document.getElementById("bossNeedText"),
+      bossBonusText: document.getElementById("bossBonusText"),
+      charHud: document.getElementById("charHud"),
+      scoreText: document.getElementById("scoreText"),
+      targetText: document.getElementById("targetText"),
+      timeText: document.getElementById("timeText"),
+      hungerText: document.getElementById("hungerText"),
+      healthHearts: document.getElementById("healthHearts"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      skillBtn: document.getElementById("skillBtn"),
+      soundBtnGame: document.getElementById("soundBtnGame")
+    };
+
+    let selected = characters[0];
+    let difficultyKey = "normal";
+    let playerName = "Player";
+    let stageIndex = 0;
+    let score = 0;
+    let totalScore = 0;
+    let hp = selected.maxHp;
+    let timeLeft = 60;
+    let combo = 0;
+    let hunger = 5;
+    let hungerMax = 5;
+    let currentTarget = 0;
+    let running = false;
+    let paused = false;
+    let burning = false;
+    let burnRemaining = 0;
+    let burnCountdownTimer = null;
+    let triggeredBurns = new Set();
+    let eatingLocked = false;
+    let eatTimestamps = [];
+    let momTimer = null;
+    let bossActive = false;
+    let bossCleared = false;
+    let bossData = null;
+    let bossTaps = 0;
+    let bossNeed = 0;
+    let bossSeconds = 0;
+    let bossBonus = 0;
+    let bossInterval = null;
+    let eventCountdown = 0;
+    let eventToastTimer = null;
+    let cameraActive = false;
+    let cameraTimer = null;
+    let skillUsed = false;
+    let skillActive = null;
+    let skillTimer = null;
+    let spicyShield = false;
+    let spawnTimer = null;
+    let clockTimer = null;
+    let messageTimer = null;
+    let chewTimer = null;
+    let faceTimer = null;
+    let burnTimer = null;
+    let audioCtx = null;
+    let masterGain = null;
+    let bgmGain = null;
+    let bgmTimer = null;
+    let bgmPlaying = false;
+    let bgmStep = 0;
+    let bgmMood = "fast";
+    let bgmEnabled = localStorage.getItem("mukbangRaceBgm") !== "off";
+    let soundEnabled = localStorage.getItem("mukbangRaceSound") !== "off";
+
+    function init() {
+      initDifficultyButtons();
+      initCharacterCards();
+      renderScores();
+      const lastName = localStorage.getItem("mukbangRaceLastName");
+      if (lastName) els.playerName.value = lastName;
+      els.startBtn.addEventListener("click", startGame);
+      els.howBtn.addEventListener("click", showHowTo);
+      els.clearScoresBtn.addEventListener("click", clearScores);
+      els.pauseBtn.addEventListener("click", togglePause);
+      els.restartBtn.addEventListener("click", backToStart);
+      els.bossFoodButton.addEventListener("pointerdown", handleBossTap);
+      els.skillBtn.addEventListener("click", useSkill);
+      els.soundBtn.addEventListener("click", toggleSound);
+      els.soundBtnGame.addEventListener("click", toggleSound);
+      els.bgmBtn.addEventListener("click", toggleBgm);
+      els.bgmBtnGame.addEventListener("click", toggleBgm);
+      updateSoundButtons();
+      updateBgmButtons();
+      document.addEventListener("contextmenu", e => e.preventDefault());
+    }
+
+    function initDifficultyButtons() {
+      els.difficultyGrid.innerHTML = "";
+      Object.entries(difficulties).forEach(([key, diff]) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "diffBtn" + (key === difficultyKey ? " selected" : "");
+        btn.innerHTML = `${diff.icon} ${diff.label}<small>${diff.desc}</small>`;
+        btn.addEventListener("click", () => {
+          difficultyKey = key;
+          document.querySelectorAll(".diffBtn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          beep(520, .05, .04);
+        });
+        els.difficultyGrid.appendChild(btn);
+      });
+    }
+
+    function initCharacterCards() {
+      els.characterGrid.innerHTML = "";
+      characters.forEach((ch, index) => {
+        const card = document.createElement("button");
+        card.className = "charCard" + (index === 0 ? " selected" : "");
+        card.type = "button";
+        card.innerHTML = `
+          <div class="charEmoji">${ch.emoji}</div>
+          <h3 class="charName">${ch.name}</h3>
+          <div class="trait"><b>${ch.title}</b><br>${ch.desc}</div>
+        `;
+        card.addEventListener("click", () => {
+          selected = ch;
+          document.querySelectorAll(".charCard").forEach(c => c.classList.remove("selected"));
+          card.classList.add("selected");
+          beep(560, .05, .04);
+        });
+        els.characterGrid.appendChild(card);
+      });
+    }
+
+
+    function getStageHero(stage) {
+      const selectedFoods = {
+        fast: ["🍔", "🍟", "🍕"],
+        dessert: ["🍰", "🍩", "🍦"],
+        spicy: ["🌶️", "🍜", "🥘"],
+        final: ["🏆", "🍔", "🍰"]
+      }[stage.id] || ["🍔","🍟","🍕"];
+
+      const tag = {
+        fast: "🍔 패스트푸드 먹방!",
+        dessert: "🍰 디저트 먹방!",
+        spicy: "🌶️ 매운 음식 챌린지!",
+        final: "🏆 먹방 대회 결승!"
+      }[stage.id] || "먹방 도전!";
+
+      const titleOnly = {
+        fast: "패스트푸드 먹방!",
+        dessert: "디저트 먹방!",
+        spicy: "매운 음식 챌린지!",
+        final: "먹방 대회 결승!"
+      }[stage.id] || stage.name;
+
+      const desc = {
+        fast: "햄버거, 피자, 치킨이 쏟아져요!",
+        dessert: "케이크, 도넛, 아이스크림이 가득해요!",
+        spicy: "떡볶이와 불닭을 조심해서 먹어요!",
+        final: "모든 음식이 몰려오는 마지막 승부!"
+      }[stage.id] || "";
+
+      const decorMap = {
+        fast: [["12%","14%","🍔"],["79%","14%","🍟"],["86%","56%","🍕"],["20%","70%","🥤"]],
+        dessert: [["13%","15%","🍰"],["82%","18%","🍩"],["84%","62%","🍦"],["18%","72%","🍫"]],
+        spicy: [["14%","16%","🌶️"],["84%","18%","🔥"],["82%","66%","🍜"],["18%","72%","🥛"]],
+        final: [["12%","16%","🏆"],["84%","16%","🌟"],["84%","66%","🍔"],["20%","72%","🍰"]]
+      };
+      const decoHtml = (decorMap[stage.id] || []).map(([l,t,e]) => 
+        `<div class="heroDecor" style="left:${l};top:${t};">${e}</div>`
+      ).join("");
+
+      return {
+        tag,
+        titleOnly,
+        desc,
+        foods: selectedFoods,
+        decoHtml
+      };
+    }
+
+    function showStageIntro(stage, adjusted) {
+      const hero = getStageHero(stage);
+      const htmlBlock = `
+        <div class="heroStage ${stage.id}">
+          ${hero.decoHtml}
+          <div class="heroCharacter">${selected.emoji}</div>
+          <div class="heroFoodPile"><span>${hero.foods[0]}</span><span>${hero.foods[1]}</span><span>${hero.foods[2]}</span></div>
+          <div class="heroInfo">
+            <div class="heroLabel">${hero.tag}</div>
+            <h2 class="heroTitle">
+              <span class="heroStageNum">Stage ${stageIndex + 1}</span>
+              <span class="heroMainTitle">${hero.titleOnly}</span>
+            </h2>
+            <p class="heroSub">${hero.desc}</p>
+            <div class="heroStats">
+              <span class="heroStat">난이도 ${difficulties[difficultyKey].label}</span>
+              <span class="heroStat">시간 ${adjusted.time}초</span>
+              <span class="heroStat">⏳ 10초 남으면 보스!</span>
+            </div>
+          </div>
+        </div>
+      `;
+      showOverlay(
+        "",
+        "",
+        [
+          { text: "시작!", className: "", action: beginPlay },
+          { text: "캐릭터 다시 선택", className: "ghost", action: backToStart }
+        ],
+        { hero: true, html: htmlBlock }
+      );
+    }
+
+
+    function startGame() {
+      const rawName = els.playerName.value.trim();
+      playerName = rawName || "Player";
+      localStorage.setItem("mukbangRaceLastName", playerName);
+      stageIndex = 0;
+      totalScore = 0;
+      els.startScreen.classList.add("hidden");
+      els.gameScreen.classList.remove("hidden");
+      startBgm();
+      startStage();
+    }
+
+    function getAdjustedStage(stage) {
+      const diff = difficulties[difficultyKey];
+      const time = Math.max(25, Math.round(stage.time * diff.time));
+      return {
+        time,
+        bossAt: 10,
+        spawnMs: Math.max(360, Math.round(stage.spawnMs * diff.spawn)),
+        hungerMax: diff.hungerMax,
+        burnBonus: diff.burnBonus
+      };
+    }
+
+    function startStage() {
+      clearTimers();
+      clearFoods();
+      stopBurning();
+      hideBossChallenge();
+      const stage = stages[stageIndex];
+      const adjusted = getAdjustedStage(stage);
+      score = 0;
+      hp = selected.maxHp;
+      timeLeft = adjusted.time;
+      hungerMax = adjusted.hungerMax;
+      hunger = hungerMax;
+      combo = 0;
+      currentTarget = stageIndex + 1;
+      running = false;
+      paused = false;
+      burning = false;
+      triggeredBurns = new Set();
+      bossCleared = false;
+      bossActive = false;
+      hideBossChallenge();
+      resetStageEffects();
+      skillUsed = false;
+      updateSkillButton();
+      eatingLocked = false;
+      eatTimestamps = [];
+      els.momEvent.classList.remove("show");
+      els.tearBubble.classList.remove("show");
+      els.pauseBtn.textContent = "일시정지";
+      els.bigChar.textContent = selected.emoji;
+      updateFace("😋");
+      setStageTheme(stage);
+      updateHud();
+      showStageIntro(stage, adjusted);
+    }
+
+    function setStageTheme(stage) {
+      bgmMood = stage.id || "fast";
+      els.gameScreen.classList.remove("stage-fast", "stage-dessert", "stage-spicy", "stage-final", "burning");
+      els.gameScreen.classList.add(stage.css);
+      els.stageBanner.textContent = stage.name;
+      els.decorations.innerHTML = "";
+      const positions = [
+        [7, 18], [88, 17], [10, 78], [86, 78], [25, 48], [75, 48]
+      ];
+      stage.deco.forEach((emoji, i) => {
+        const d = document.createElement("div");
+        d.className = "deco";
+        d.textContent = emoji;
+        d.style.left = positions[i % positions.length][0] + "%";
+        d.style.top = positions[i % positions.length][1] + "%";
+        els.decorations.appendChild(d);
+      });
+    }
+
+    function beginPlay() {
+      hideOverlay();
+      running = true;
+      paused = false;
+      showMessage("시작! 냠냠!");
+      resetEventCountdown();
+      updateSkillButton();
+      spawnFoodBurst(4);
+
+      const stage = stages[stageIndex];
+      const adjusted = getAdjustedStage(stage);
+
+      spawnTimer = setInterval(() => {
+        if (!running || paused) return;
+        spawnFood();
+        const foodsOnScreen = els.gameArea.querySelectorAll(".food").length;
+        if (foodsOnScreen < 4) spawnFood();
+        if (burning) spawnFoodBurst(2);
+      }, adjusted.spawnMs);
+
+      clockTimer = setInterval(() => {
+        if (!running || paused) return;
+        timeLeft--;
+        hunger--;
+
+        maybeStartBurning();
+        maybeTriggerRandomEvent();
+
+        if (hunger <= 0) {
+          hp--;
+          hunger = hungerMax;
+          combo = 0;
+          updateFace("😣");
+          showMessage("배고파! 빨리 먹어야 해!");
+          playSound("hunger");
+        }
+
+        updateHud();
+
+        if (hp <= 0) {
+          endStage(false, "너무 배고파서 힘이 없어요!");
+          return;
+        }
+
+        if (timeLeft <= adjusted.bossAt && !bossActive && !bossCleared) {
+          showMessage("10초 남았다! 대왕 음식 등장!");
+          playSound("stageClear");
+          setTimeout(() => startBossChallenge(), 450);
+          return;
+        }
+      }, 1000);
+    }
+
+    function maybeStartBurning() {
+      const stage = stages[stageIndex];
+      for (const at of stage.burnAt) {
+        const key = String(at);
+        if (timeLeft <= at && !triggeredBurns.has(key)) {
+          triggeredBurns.add(key);
+          startBurning(stage.burnDuration);
+          break;
+        }
+      }
+    }
+
+
+
+    function resetStageEffects() {
+      cameraActive = false;
+      spicyShield = false;
+      skillActive = null;
+      clearTimeout(cameraTimer);
+      clearTimeout(skillTimer);
+      clearTimeout(eventToastTimer);
+      cameraTimer = null;
+      skillTimer = null;
+      eventToastTimer = null;
+      els.cameraBadge.classList.remove("show");
+      els.eventToast.classList.remove("show");
+      els.skillBanner.classList.remove("show");
+    }
+
+    function resetEventCountdown() {
+      eventCountdown = Math.floor(9 + Math.random() * 7);
+      if (difficultyKey === "easy") eventCountdown += 3;
+      if (difficultyKey === "hard") eventCountdown -= 2;
+      eventCountdown = Math.max(6, eventCountdown);
+    }
+
+    function maybeTriggerRandomEvent() {
+      if (!running || paused || bossActive || eatingLocked) return;
+      eventCountdown--;
+      if (eventCountdown > 0) return;
+      triggerRandomEvent();
+      resetEventCountdown();
+    }
+
+    function triggerRandomEvent() {
+      const roll = Math.random();
+      if (roll < 0.34) {
+        triggerDadEvent();
+      } else if (roll < 0.67) {
+        triggerSiblingEvent();
+      } else {
+        triggerCameraEvent();
+      }
+    }
+
+    function showEventToast(emoji, text, duration = 1900) {
+      els.eventEmoji.textContent = emoji;
+      els.eventText.innerHTML = text;
+      els.eventToast.classList.add("show");
+      clearTimeout(eventToastTimer);
+      eventToastTimer = setTimeout(() => els.eventToast.classList.remove("show"), duration);
+    }
+
+    function triggerDadEvent() {
+      showEventToast("👨", `${playerName}아, 아빠도 한입만!<br><b>음식 하나가 사라졌어요.</b>`);
+      const foodNodes = [...els.gameArea.querySelectorAll(".food")];
+      if (foodNodes.length) {
+        const node = foodNodes[Math.floor(Math.random() * foodNodes.length)];
+        node.animate([
+          { transform: "scale(1) rotate(0deg)", opacity: 1 },
+          { transform: "scale(1.35) rotate(12deg)", opacity: .85 },
+          { transform: "scale(.2) rotate(-18deg)", opacity: 0 }
+        ], { duration: 520, easing: "ease-in" });
+        setTimeout(() => node.remove(), 500);
+      }
+      updateFace("😮", true);
+      playSound("dad");
+    }
+
+    function triggerSiblingEvent() {
+      showEventToast("🧒", `동생: 이거 내 거야!<br><b>음식 두 개를 가져갔어요.</b>`);
+      const foodNodes = [...els.gameArea.querySelectorAll(".food")].slice(0, 2 + Math.floor(Math.random() * 2));
+      foodNodes.forEach((node, i) => {
+        node.animate([
+          { transform: "translate(0,0) scale(1)", opacity: 1 },
+          { transform: `translate(${i % 2 ? 180 : -180}px, -120px) scale(.25)`, opacity: 0 }
+        ], { duration: 620, easing: "ease-in" });
+        setTimeout(() => node.remove(), 600);
+      });
+      updateFace("😲", true);
+      playSound("sibling");
+    }
+
+    function triggerCameraEvent() {
+      cameraActive = true;
+      showEventToast("🎥", `먹방 카메라 ON!<br><b>6초 동안 점수 x1.5</b>`, 2200);
+      els.cameraBadge.classList.add("show");
+      updateFace("🤩", true);
+      playSound("camera");
+      spawnFoodBurst(4);
+      clearTimeout(cameraTimer);
+      cameraTimer = setTimeout(() => {
+        cameraActive = false;
+        els.cameraBadge.classList.remove("show");
+        showMessage("카메라 OFF!");
+      }, 6000);
+    }
+
+    function getSkillInfo() {
+      if (selected.id === "tori") return { label: "🌶️ 매운 무적", desc: "6초 동안 매운 음식 피해 0" };
+      if (selected.id === "mochi") return { label: "🍰 디저트 파티", desc: "6초 동안 디저트 점수 x2" };
+      return { label: "💪 든든 회복", desc: "체력과 배고픔 회복" };
+    }
+
+    function updateSkillButton() {
+      const info = getSkillInfo();
+      els.skillBtn.textContent = skillUsed ? "스킬 사용완료" : info.label;
+      els.skillBtn.disabled = skillUsed || !running || paused || bossActive;
+      els.skillBtn.classList.toggle("used", skillUsed);
+    }
+
+    function showSkillBanner(text) {
+      els.skillBanner.textContent = text;
+      els.skillBanner.classList.add("show");
+      setTimeout(() => els.skillBanner.classList.remove("show"), 1600);
+    }
+
+    function spawnFoodIds(ids) {
+      ids.forEach((id, i) => setTimeout(() => spawnFood(id), i * 95));
+    }
+
+    function useSkill() {
+      if (!running || paused || bossActive || skillUsed) return;
+      skillUsed = true;
+      updateSkillButton();
+      const info = getSkillInfo();
+      showSkillBanner(info.desc);
+      playSound("skill");
+
+      if (selected.id === "tori") {
+        spicyShield = true;
+        skillActive = "spicy";
+        updateFace("😎", true);
+        spawnFoodIds(["tteok", "buldak", "chili", "water", "milk"]);
+        clearTimeout(skillTimer);
+        skillTimer = setTimeout(() => {
+          spicyShield = false;
+          skillActive = null;
+          showMessage("매운 무적 끝!");
+        }, 6000);
+      } else if (selected.id === "mochi") {
+        skillActive = "dessert";
+        updateFace("😍", true);
+        spawnFoodIds(["cake", "donut", "icecream", "chocolate", "candy", "cake"]);
+        clearTimeout(skillTimer);
+        skillTimer = setTimeout(() => {
+          skillActive = null;
+          showMessage("디저트 파티 끝!");
+        }, 6000);
+      } else {
+        hp = Math.min(selected.maxHp, hp + 3);
+        hunger = hungerMax;
+        combo += 2;
+        updateFace("💪", true);
+        showMessage("뿌꾸 든든 회복!");
+        updateHud();
+      }
+    }
+
+    function checkOverEating() {
+      const now = Date.now();
+      eatTimestamps = eatTimestamps.filter(t => now - t <= 5200);
+      eatTimestamps.push(now);
+
+      const limit = difficultyKey === "easy" ? 6 : difficultyKey === "normal" ? 5 : 4;
+
+      if (eatTimestamps.length >= limit && !eatingLocked) {
+        triggerMomEvent();
+      }
+    }
+
+    function triggerMomEvent() {
+      eatingLocked = true;
+      eatTimestamps = [];
+
+      const lines = [
+        `${playerName}아, 그만 좀 먹어!`,
+        `${playerName}아, 그거 거짓 배고픔이야!`,
+        `${playerName}아, 계속 먹으면 배아프다!`,
+        `${playerName}아, 천천히 먹어야지!`
+      ];
+
+      const line = lines[Math.floor(Math.random() * lines.length)];
+      els.momText.textContent = line;
+      els.momEvent.classList.add("show");
+      els.tearBubble.classList.add("show");
+      updateFace("😭", true);
+      showMessage("3초 동안 못 먹어요!");
+      playSound("mom");
+
+      clearTimeout(momTimer);
+      momTimer = setTimeout(() => {
+        eatingLocked = false;
+        els.momEvent.classList.remove("show");
+        els.tearBubble.classList.remove("show");
+        updateFace("😋", true);
+        showMessage("다시 먹을 수 있어요!");
+      }, 3000);
+    }
+
+    function startBurning(seconds) {
+      if (burning) return;
+      burning = true;
+      burnRemaining = seconds;
+      els.gameScreen.classList.add("burning");
+      els.burningBadge.classList.add("show");
+      els.burnCountdown.classList.add("show");
+      updateBurnCountdown();
+      updateFace("🤩");
+      showMessage("🚨 버닝타임! 빨리 먹어!");
+      playSound("burning");
+      spawnFoodBurst(12);
+
+      clearTimeout(burnTimer);
+      clearInterval(burnCountdownTimer);
+
+      burnCountdownTimer = setInterval(() => {
+        if (!running || paused || !burning) return;
+        burnRemaining--;
+        updateBurnCountdown();
+        if (burnRemaining <= 0) {
+          stopBurning();
+        }
+      }, 1000);
+
+      burnTimer = setTimeout(() => {
+        stopBurning();
+      }, seconds * 1000 + 150);
+    }
+
+    function updateBurnCountdown() {
+      els.burnCountdown.innerHTML = `${Math.max(0, burnRemaining)}<small>초 남음</small>`;
+      if (burning && burnRemaining > 0 && burnRemaining <= 3) playSound("countdown");
+    }
+
+    function stopBurning() {
+      burning = false;
+      burnRemaining = 0;
+      els.gameScreen.classList.remove("burning");
+      els.burningBadge.classList.remove("show");
+      els.burnCountdown.classList.remove("show");
+      clearTimeout(burnTimer);
+      clearInterval(burnCountdownTimer);
+      burnTimer = null;
+      burnCountdownTimer = null;
+    }
+
+    function weightedPick(list) {
+      const diff = difficulties[difficultyKey];
+      let expanded = [];
+      for (const [id, weight] of list) {
+        const food = foods[id];
+        const extra = food && food.kind === "bad" ? diff.badExtra : 0;
+        expanded.push([id, weight + extra]);
+      }
+      if (burning) {
+        expanded = expanded.map(([id, weight]) => {
+          const food = foods[id];
+          if (food.kind === "special" || food.kind === "good" || food.kind === "heal") return [id, weight + 3];
+          return [id, Math.max(1, weight - 1)];
+        });
+      }
+
+      const total = expanded.reduce((sum, item) => sum + item[1], 0);
+      let r = Math.random() * total;
+      for (const item of expanded) {
+        r -= item[1];
+        if (r <= 0) return item[0];
+      }
+      return expanded[0][0];
+    }
+
+    function spawnFoodBurst(count) {
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => spawnFood(), i * 80);
+      }
+    }
+
+    function spawnFood(forcedId = null) {
+      if (!running || paused) return;
+      const stage = stages[stageIndex];
+      const id = forcedId || weightedPick(stage.list);
+      const food = foods[id];
+
+      const node = document.createElement("div");
+      node.className = "food";
+      if (food.kind === "special" || food.kind === "heal") node.classList.add("special");
+      if (burning) node.classList.add("burnFood");
+      node.dataset.foodId = id;
+      node.innerHTML = `${food.emoji}<span class="foodLabel">${food.name}</span>`;
+
+      const area = els.gameArea.getBoundingClientRect();
+      const pad = 95;
+      const charRect = document.getElementById("characterStage").getBoundingClientRect();
+
+      let x, y, tries = 0;
+      do {
+        x = Math.random() * Math.max(1, area.width - pad * 2) + pad;
+        y = Math.random() * Math.max(1, area.height - pad * 2) + pad;
+        tries++;
+      } while (
+        tries < 20 &&
+        x > charRect.left - area.left - 75 &&
+        x < charRect.right - area.left + 75 &&
+        y > charRect.top - area.top - 75 &&
+        y < charRect.bottom - area.top + 75
+      );
+
+      node.style.left = `${x}px`;
+      node.style.top = `${y}px`;
+      els.gameArea.appendChild(node);
+      enableDrag(node);
+
+      const life = burning ? 4700 : 6000;
+      setTimeout(() => {
+        if (node.isConnected && !node.classList.contains("dragging")) {
+          node.style.opacity = "0";
+          node.style.transform = "scale(.75)";
+          setTimeout(() => node.remove(), 250);
+        }
+      }, life);
+    }
+
+    function enableDrag(node) {
+      let offsetX = 0, offsetY = 0;
+      let dragging = false;
+
+      node.addEventListener("pointerdown", (e) => {
+        if (!running || paused) return;
+        e.preventDefault();
+        dragging = true;
+        node.classList.add("dragging");
+        node.setPointerCapture(e.pointerId);
+        const rect = node.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        beep(440, .025, .025);
+      });
+
+      node.addEventListener("pointermove", (e) => {
+        if (!dragging || !running || paused) return;
+        e.preventDefault();
+        const area = els.gameArea.getBoundingClientRect();
+        const x = e.clientX - area.left - offsetX;
+        const y = e.clientY - area.top - offsetY;
+        node.style.left = `${clamp(x, 0, area.width - node.offsetWidth)}px`;
+        node.style.top = `${clamp(y, 0, area.height - node.offsetHeight)}px`;
+      });
+
+      node.addEventListener("pointerup", (e) => {
+        if (!dragging) return;
+        dragging = false;
+        node.classList.remove("dragging");
+        try { node.releasePointerCapture(e.pointerId); } catch (err) {}
+
+        if (!running || paused) return;
+        if (isOnMouth(node)) {
+          eatFood(node);
+        } else {
+          node.animate([{ transform: "scale(1.08)" }, { transform: "scale(1)" }], { duration: 150 });
+        }
+      });
+
+      node.addEventListener("pointercancel", () => {
+        dragging = false;
+        node.classList.remove("dragging");
+      });
+    }
+
+    function isOnMouth(node) {
+      const foodRect = node.getBoundingClientRect();
+      const mouthRect = els.mouth.getBoundingClientRect();
+      const foodCx = foodRect.left + foodRect.width / 2;
+      const foodCy = foodRect.top + foodRect.height / 2;
+      const mouthCx = mouthRect.left + mouthRect.width / 2;
+      const mouthCy = mouthRect.top + mouthRect.height / 2;
+      const radius = Math.max(mouthRect.width, mouthRect.height) / 2 + selected.mouthBonus;
+      return Math.hypot(foodCx - mouthCx, foodCy - mouthCy) <= radius;
+    }
+
+    function animateEat(face) {
+      clearTimeout(chewTimer);
+      els.charBody.classList.add("chew");
+      els.mouth.classList.add("open");
+      updateFace(face, true);
+      chewTimer = setTimeout(() => {
+        els.charBody.classList.remove("chew");
+        els.mouth.classList.remove("open");
+      }, 320);
+    }
+
+    function updateFace(face, bump = false) {
+      clearTimeout(faceTimer);
+      els.faceBubble.textContent = face;
+      if (bump) {
+        els.faceBubble.classList.add("bump");
+        faceTimer = setTimeout(() => els.faceBubble.classList.remove("bump"), 360);
+      }
+    }
+
+    function eatFood(node) {
+      if (eatingLocked) {
+        showMessage("눈물이 나와... 3초 동안 못 먹어요!");
+        updateFace("😭", true);
+        playSound("bad");
+        return;
+      }
+
+      const food = foods[node.dataset.foodId];
+      let points = food.score || 0;
+      let damage = food.damage || 0;
+      let heal = food.heal || 0;
+      let message = "";
+      let face = "😋";
+
+      hunger = hungerMax;
+      checkOverEating();
+
+      if (food.kind === "good" || food.kind === "special") {
+        combo++;
+        points *= selected.allScore;
+        if (food.category === "dessert") points *= selected.dessertBonus;
+        if (food.category === "spicy") points *= selected.spicyBonus;
+        if (combo >= 5) points += Math.min(30, combo * 2);
+        message = combo >= 5 ? `냠냠 콤보 x${combo}!` : "냠냠!";
+        face = food.kind === "special" ? "😍" : "😋";
+        playSound(combo >= 5 ? "combo" : "eat");
+      }
+
+      if (food.kind === "spicy") {
+        combo++;
+        points *= selected.allScore * selected.spicyBonus;
+        damage = spicyShield ? 0 : Math.ceil(damage * selected.spicyDamage);
+        if (spicyShield) points *= 1.4;
+        if (damage > 0) hp -= damage;
+        if (selected.id === "tori") {
+          message = "토리: 이 정도 매운맛은 괜찮아!";
+          face = "😎";
+        } else if (selected.id === "mochi") {
+          message = "모찌: 으악! 너무 매워!";
+          face = "🥵";
+        } else {
+          message = "매워도 먹는다!";
+          face = "🔥";
+        }
+        playSound("spicy");
+      }
+
+      if (food.kind === "bad") {
+        combo = 0;
+        damage = Math.ceil(damage * selected.badDamage);
+        hp -= damage;
+        message = food.name + " 먹었다! 조심!";
+        face = "😵";
+        playSound("bad");
+      }
+
+      if (food.kind === "heal") {
+        combo++;
+        hp = Math.min(selected.maxHp, hp + heal);
+        points *= selected.allScore;
+        message = food.name === "우유" ? "우유 마시고 회복!" : "물 마시고 회복!";
+        face = "🥰";
+        playSound("heal");
+      }
+
+      if (skillActive === "dessert" && food.category === "dessert" && points > 0) {
+        points *= 2;
+      }
+
+      if (cameraActive && points > 0) {
+        points *= 1.5;
+      }
+
+      if (burning && points > 0) {
+        points *= difficulties[difficultyKey].burnBonus;
+      }
+
+      animateEat(face);
+
+      const finalPoints = Math.round(points);
+      score = Math.max(0, score + finalPoints);
+      showPop(node, finalPoints);
+      showMessage(message);
+      node.remove();
+      updateHud();
+
+      if (hp <= 0) {
+        endStage(false, "배가 아파요!");
+        return;
+      }
+
+    }
+
+    function showPop(node, points) {
+      const area = els.gameArea.getBoundingClientRect();
+      const rect = node.getBoundingClientRect();
+      const pop = document.createElement("div");
+      pop.className = "pop";
+      pop.textContent = points >= 0 ? `+${points}` : `${points}`;
+      pop.style.left = `${rect.left - area.left + rect.width / 2}px`;
+      pop.style.top = `${rect.top - area.top}px`;
+      pop.style.color = points >= 0 ? "#169b62" : "#e23d57";
+      els.gameArea.appendChild(pop);
+      setTimeout(() => pop.remove(), 800);
+    }
+
+    function updateHud() {
+      els.charHud.textContent = `${selected.emoji} ${selected.name}`;
+      els.scoreText.textContent = totalScore + score;
+      els.targetText.textContent = `${stageIndex + 1}/${stages.length}`;
+      els.timeText.textContent = timeLeft;
+      els.hungerText.textContent = hunger;
+      const full = "❤️".repeat(Math.max(0, hp));
+      const empty = "🤍".repeat(Math.max(0, selected.maxHp - hp));
+      els.healthHearts.textContent = full + empty;
+    }
+
+
+    function pickBossForStage(stage) {
+      const pool = bossPools[stage.id] || bossPools.final;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function startBossChallenge() {
+      if (bossActive || bossCleared) return;
+      running = false;
+      paused = false;
+      clearTimers();
+      clearFoods();
+      stopBurning();
+
+      const stage = stages[stageIndex];
+      bossData = pickBossForStage(stage);
+      const diff = difficulties[difficultyKey];
+
+      bossNeed = Math.max(8, Math.round(bossData.taps * (difficultyKey === "easy" ? 0.78 : difficultyKey === "hard" ? 1.18 : 1)));
+      bossSeconds = Math.max(5, Math.round(bossData.seconds * (difficultyKey === "easy" ? 1.18 : difficultyKey === "hard" ? 0.9 : 1)));
+      bossBonus = Math.round(bossData.bonus * (difficultyKey === "easy" ? 0.9 : difficultyKey === "hard" ? 1.2 : 1));
+
+      bossTaps = 0;
+      bossActive = true;
+      els.bossWarning.classList.add("show");
+      setTimeout(() => els.bossWarning.classList.remove("show"), 1200);
+
+      els.bossTitle.textContent = `대왕 음식 등장!`;
+      els.bossDesc.innerHTML = `<b>${bossData.name}</b><br>제한시간 안에 많이 터치해서 먹어치워요!`;
+      els.bossFoodButton.textContent = bossData.emoji;
+      els.bossTimeText.textContent = bossSeconds;
+      els.bossTapText.textContent = bossTaps;
+      els.bossNeedText.textContent = bossNeed;
+      els.bossBonusText.textContent = bossBonus;
+      els.bossProgressBar.style.width = "0%";
+      els.bossFoodButton.style.setProperty("--bossScale", "1");
+
+      els.bossChallenge.classList.remove("hidden");
+      setTimeout(() => els.bossChallenge.classList.add("show"), 20);
+
+      updateFace("🤩", true);
+      showMessage(`⚠️ WARNING! ${bossData.name} 등장!`);
+      els.gameArea.classList.add("screenShake");
+      setTimeout(() => els.gameArea.classList.remove("screenShake"), 650);
+      playSound("bossStart");
+
+      clearInterval(bossInterval);
+      bossInterval = setInterval(() => {
+        if (!bossActive) return;
+        bossSeconds--;
+        els.bossTimeText.textContent = bossSeconds;
+
+        if (bossSeconds <= 0) {
+          finishBossChallenge(false);
+        }
+      }, 1000);
+    }
+
+    function handleBossTap(e) {
+      if (!bossActive) return;
+      e.preventDefault();
+
+      bossTaps++;
+      const bossRate = Math.min(1, bossTaps / bossNeed);
+      els.bossTapText.textContent = bossTaps;
+      els.bossProgressBar.style.width = `${Math.min(100, bossRate * 100)}%`;
+      els.bossFoodButton.style.setProperty("--bossScale", String(Math.max(.58, 1 - bossRate * .38)));
+      const bossPanel = els.bossChallenge.querySelector(".bossPanel");
+      if (bossPanel) {
+        bossPanel.classList.remove("screenShake");
+        void bossPanel.offsetWidth;
+        bossPanel.classList.add("screenShake");
+        setTimeout(() => bossPanel.classList.remove("screenShake"), 320);
+      }
+
+      els.bossFoodButton.animate([
+        { transform: "scale(1)" },
+        { transform: "scale(.88) rotate(-4deg)" },
+        { transform: "scale(1.04) rotate(3deg)" }
+      ], { duration: 160 });
+
+      els.bossTapPop.textContent = `+${bossTaps}`;
+      els.bossTapPop.classList.remove("show");
+      void els.bossTapPop.offsetWidth;
+      els.bossTapPop.classList.add("show");
+
+      playSound("bossTap");
+
+      if (bossTaps >= bossNeed) {
+        finishBossChallenge(true);
+      }
+    }
+
+    function finishBossChallenge(success) {
+      if (!bossActive) return;
+      bossActive = false;
+      bossCleared = true;
+      clearInterval(bossInterval);
+      bossInterval = null;
+      cameraTimer = null;
+      skillTimer = null;
+      eventToastTimer = null;
+
+      let stageTotal = score;
+      if (success) {
+        score += bossBonus;
+        stageTotal = score;
+        totalScore += stageTotal;
+        score = 0;
+        showPopAtCenter(`냠냠 피니시! +${bossBonus}`, true);
+        showMessage("냠냠 피니시!");
+        updateFace("😍", true);
+        playSound("bossSuccess");
+      } else {
+        totalScore += stageTotal;
+        score = 0;
+        showPopAtCenter("보너스 실패!", false);
+        updateFace("😮", true);
+        playSound("bossFail");
+      }
+
+      updateHud();
+
+      setTimeout(() => {
+        hideBossChallenge();
+        const isLast = stageIndex >= stages.length - 1;
+
+        if (isLast) {
+          finishGame(true);
+        } else {
+          showOverlay(
+            success ? "🎉 보스 음식 성공!" : "😅 보스 음식 실패!",
+            success
+              ? `${bossData.name}까지 먹었어요!<br>이번 스테이지 점수 <b>${stageTotal}</b>점<br>누적 점수: <b>${totalScore}</b>`
+              : `${bossData.name}을 다 못 먹었지만 스테이지는 완료!<br>이번 스테이지 점수 <b>${stageTotal}</b>점<br>누적 점수: <b>${totalScore}</b>`,
+            [
+              { text: "다음 스테이지", className: "", action: () => { stageIndex++; startStage(); } },
+              { text: "캐릭터 선택", className: "ghost", action: backToStart }
+            ]
+          );
+        }
+      }, 850);
+    }
+
+    function hideBossChallenge() {
+      if (!els.bossChallenge) return;
+      els.bossChallenge.classList.remove("show");
+      els.bossChallenge.classList.add("hidden");
+      clearInterval(bossInterval);
+      bossInterval = null;
+      cameraTimer = null;
+      skillTimer = null;
+      eventToastTimer = null;
+      bossActive = false;
+    }
+
+    function showPopAtCenter(text, good) {
+      const pop = document.createElement("div");
+      pop.className = "pop";
+      pop.textContent = text;
+      pop.style.left = "50%";
+      pop.style.top = "45%";
+      pop.style.color = good ? "#169b62" : "#e23d57";
+      els.gameArea.appendChild(pop);
+      setTimeout(() => pop.remove(), 850);
+    }
+
+
+    function endStage(success, title) {
+      if (!running && !paused) return;
+      running = false;
+      paused = false;
+      clearTimers();
+      clearFoods();
+      stopBurning();
+      updateHud();
+
+      if (success) {
+        playSound("stageClear");
+        showMessage("대왕 음식 등장!");
+        setTimeout(() => startBossChallenge(), 520);
+      } else {
+        totalScore += Math.round(score * .5);
+        finishGame(false, title);
+      }
+    }
+
+    function finishGame(cleared, reason = "") {
+      const finalScore = Math.max(0, totalScore);
+      const record = {
+        name: playerName,
+        score: finalScore,
+        cleared,
+        difficulty: difficulties[difficultyKey].label,
+        character: selected.name,
+        stage: stageIndex + 1,
+        date: new Date().toLocaleDateString("ko-KR")
+      };
+
+      const scoresBefore = loadScores();
+      const previousBest = scoresBefore.length ? Math.max(...scoresBefore.map(s => Number(s.score) || 0)) : 0;
+      const isNewRecord = finalScore > previousBest;
+      const rank = getRank(finalScore, scoresBefore);
+      saveScore(record);
+
+      if (isNewRecord) {
+        playSound("record");
+      } else if (!cleared) {
+        playSound("gameOver");
+      }
+      const title = isNewRecord ? "🎉 NEW RECORD!" : (cleared ? "🏆 먹방 대왕!" : "😵 게임 종료!");
+      const tier = getTier(finalScore);
+      const praise = getPraiseMessage(cleared, finalScore, isNewRecord);
+      const recordText = isNewRecord
+        ? `<b>최고 기록 갱신!</b><br>이전 기록: ${previousBest}점 → 새 기록: ${finalScore}점<br>`
+        : "";
+      const clearedText = cleared ? "모든 스테이지를 클리어했어요!" : `${reason}<br>도전한 스테이지: Stage ${stageIndex + 1}`;
+
+      showOverlay(
+        title,
+        `${clearedText}<br><br>
+         ${recordText}
+         <b>${playerName}</b> 최종 점수: <b>${finalScore}</b>점<br>
+         오늘 기록 기준 <b>${rank}등</b>!<br>
+         등급: <b>${tier}</b><br>
+         캐릭터: ${selected.name} / 난이도: ${difficulties[difficultyKey].label}<br><br>
+         🌟 ${praise}`,
+        [
+          { text: "다시 하기", className: "", action: () => { stageIndex = 0; totalScore = 0; startStage(); } },
+          { text: "처음 화면", className: "ghost", action: backToStart }
+        ]
+      );
+      renderScores();
+    }
+
+
+    function getPraiseMessage(cleared, finalScore, isNewRecord) {
+      if (isNewRecord) {
+        const lines = [
+          "오늘의 먹방 최고 기록을 세웠어!",
+          "손가락 속도가 챔피언급이야!",
+          "이건 진짜 레전드 먹방 기록이야!"
+        ];
+        return lines[Math.floor(Math.random() * lines.length)];
+      }
+      if (cleared) {
+        const lines = [
+          "끝까지 포기하지 않은 먹방 스타!",
+          "음식 선택이 아주 똑똑했어!",
+          "보스 음식까지 잘 버텼어!",
+          "다음엔 최고 기록까지 노려보자!"
+        ];
+        return lines[Math.floor(Math.random() * lines.length)];
+      }
+      const lines = [
+        "괜찮아, 다음 판에는 더 잘할 수 있어!",
+        "이번엔 연습 완료! 다시 도전해보자!",
+        "보스 음식 잡는 타이밍만 익히면 훨씬 좋아질 거야!"
+      ];
+      return lines[Math.floor(Math.random() * lines.length)];
+    }
+
+    function getTier(finalScore) {
+      if (finalScore >= 1000) return "전설의 먹방 챔피언";
+      if (finalScore >= 700) return "먹방 대왕";
+      if (finalScore >= 450) return "먹방 고수";
+      if (finalScore >= 250) return "든든한 먹방러";
+      return "새싹 먹방러";
+    }
+
+    function loadScores() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveScore(record) {
+      const scores = loadScores();
+      scores.push(record);
+      scores.sort((a, b) => b.score - a.score);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(scores.slice(0, 20)));
+    }
+
+    function getRank(score, scores) {
+      const sorted = [...scores].sort((a, b) => b.score - a.score);
+      let rank = 1;
+      for (const item of sorted) {
+        if (item.score > score) rank++;
+      }
+      return rank;
+    }
+
+    function renderScores() {
+      const scores = loadScores();
+      els.scoreList.innerHTML = "";
+      if (!scores.length) {
+        els.scoreList.innerHTML = `<div class="emptyScore">아직 기록이 없어요.<br>첫 먹방 챔피언이 되어보세요!</div>`;
+        return;
+      }
+
+      scores.slice(0, 10).forEach((s, i) => {
+        const row = document.createElement("div");
+        row.className = "scoreRow";
+        row.innerHTML = `
+          <div class="rankBadge">${i + 1}</div>
+          <div>
+            <div>${escapeHtml(s.name)} ${s.cleared ? "🏆" : "🍽️"}</div>
+            <div class="scoreMeta">${s.character} · ${s.difficulty} · Stage ${s.stage} · ${s.date}</div>
+          </div>
+          <div>${s.score}점</div>
+        `;
+        els.scoreList.appendChild(row);
+      });
+    }
+
+    function clearScores() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderScores();
+      beep(240, .07, .04);
+    }
+
+    function showOverlay(title, text, actions, options = {}) {
+      els.overlay.innerHTML = "";
+      els.overlay.classList.toggle("heroMode", !!options.hero);
+
+      const modal = document.createElement("div");
+      modal.className = "modal";
+
+      if (options.hero && options.html) {
+        modal.innerHTML = options.html;
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "heroActions";
+        actions.forEach(a => {
+          const btn = document.createElement("button");
+          btn.textContent = a.text;
+          if (a.className) btn.className = a.className;
+          btn.addEventListener("click", a.action);
+          actionWrap.appendChild(btn);
+        });
+        modal.appendChild(actionWrap);
+      } else {
+        const h2 = document.createElement("h2");
+        h2.id = "modalTitle";
+        h2.innerHTML = title;
+
+        const p = document.createElement("p");
+        p.id = "modalText";
+        p.innerHTML = text;
+
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "modalActions";
+        actionWrap.id = "modalActions";
+
+        actions.forEach(a => {
+          const btn = document.createElement("button");
+          btn.textContent = a.text;
+          if (a.className) btn.className = a.className;
+          btn.addEventListener("click", a.action);
+          actionWrap.appendChild(btn);
+        });
+
+        modal.appendChild(h2);
+        modal.appendChild(p);
+        modal.appendChild(actionWrap);
+      }
+
+      els.overlay.appendChild(modal);
+      els.overlay.classList.remove("hidden");
+    }
+
+    function hideOverlay() {
+      els.overlay.classList.remove("heroMode");
+      els.overlay.classList.add("hidden");
+    }
+
+    function showMessage(text) {
+      clearTimeout(messageTimer);
+      els.message.textContent = text;
+      els.message.classList.add("show");
+      messageTimer = setTimeout(() => els.message.classList.remove("show"), 950);
+    }
+
+    function clearTimers() {
+      if (spawnTimer) clearInterval(spawnTimer);
+      if (clockTimer) clearInterval(clockTimer);
+      if (burnCountdownTimer) clearInterval(burnCountdownTimer);
+      if (momTimer) clearTimeout(momTimer);
+      if (bossInterval) clearInterval(bossInterval);
+      if (cameraTimer) clearTimeout(cameraTimer);
+      if (skillTimer) clearTimeout(skillTimer);
+      if (eventToastTimer) clearTimeout(eventToastTimer);
+      spawnTimer = null;
+      clockTimer = null;
+      burnCountdownTimer = null;
+      momTimer = null;
+      bossInterval = null;
+      cameraTimer = null;
+      skillTimer = null;
+      eventToastTimer = null;
+      eatingLocked = false;
+      eatTimestamps = [];
+      els.momEvent.classList.remove("show");
+      els.tearBubble.classList.remove("show");
+    }
+
+    function clearFoods() {
+      els.gameArea.querySelectorAll(".food, .pop").forEach(n => n.remove());
+    }
+
+    function backToStart() {
+      clearTimers();
+      clearFoods();
+      stopBurning();
+      hideBossChallenge();
+      resetStageEffects();
+      running = false;
+      paused = false;
+      hideOverlay();
+      els.gameScreen.classList.add("hidden");
+      els.startScreen.classList.remove("hidden");
+      renderScores();
+    }
+
+    function togglePause() {
+      if (!running) return;
+      paused = !paused;
+      els.pauseBtn.textContent = paused ? "계속하기" : "일시정지";
+      showMessage(paused ? "잠깐 쉬기!" : "다시 시작!");
+      updateSkillButton();
+    }
+
+    function showHowTo() {
+      hideBossChallenge();
+      els.startScreen.classList.add("hidden");
+      els.gameScreen.classList.remove("hidden");
+      clearFoods();
+      stopBurning();
+      els.bigChar.textContent = selected.emoji;
+      updateFace("😋");
+      els.stageBanner.textContent = "게임 규칙";
+      els.charHud.textContent = `${selected.emoji} ${selected.name}`;
+      els.scoreText.textContent = "0";
+      els.targetText.textContent = `1/${stages.length}`;
+      els.timeText.textContent = "-";
+      els.hungerText.textContent = difficulties[difficultyKey].hungerMax;
+      els.healthHearts.textContent = "❤️❤️❤️";
+      setStageTheme(stages[0]);
+      showOverlay(
+        "게임 규칙",
+        `1. 음식을 손가락으로 끌어서 입에 넣기<br>
+         2. 목표 없이 제한시간 안에 최대한 많이 먹어요<br>
+         3. 10초가 남으면 대왕 음식 보스가 나와요<br>
+         4. 배고픔이 0이 되면 체력이 줄어들어요<br>
+         5. 음식 이름은 드래그할 때만 보여요<br>
+         6. 너무 한꺼번에 많이 먹으면 엄마가 나타나고 3초 동안 못 먹어요<br>
+         7. 아빠, 동생, 먹방 카메라 랜덤 이벤트가 나와요<br>
+         8. 캐릭터별 스킬은 스테이지마다 한 번 쓸 수 있어요<br>
+         9. 마지막에는 최고기록과 칭찬 멘트가 나와요`,
+        [
+          { text: "캐릭터 선택으로 돌아가기", className: "ghost", action: backToStart },
+          { text: "바로 시작", className: "", action: () => { stageIndex = 0; totalScore = 0; startStage(); } }
+        ]
+      );
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[c]));
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem("mukbangRaceSound", soundEnabled ? "on" : "off");
+      updateSoundButtons();
+      if (soundEnabled) {
+        ensureAudio();
+        playSound("ui");
+      }
+    }
+
+    function updateSoundButtons() {
+      if (els.soundBtn) els.soundBtn.textContent = soundEnabled ? "🔊 효과음 ON" : "🔇 효과음 OFF";
+      if (els.soundBtnGame) els.soundBtnGame.textContent = soundEnabled ? "🔊" : "🔇";
+    }
+
+    function toggleBgm() {
+      bgmEnabled = !bgmEnabled;
+      localStorage.setItem("mukbangRaceBgm", bgmEnabled ? "on" : "off");
+      updateBgmButtons();
+      if (bgmEnabled) {
+        startBgm();
+        playSound("ui");
+      } else {
+        stopBgm();
+      }
+    }
+
+    function updateBgmButtons() {
+      if (els.bgmBtn) els.bgmBtn.textContent = bgmEnabled ? "🎵 BGM ON" : "🔕 BGM OFF";
+      if (els.bgmBtnGame) els.bgmBtnGame.textContent = bgmEnabled ? "🎵" : "🔕";
+    }
+
+    function ensureBgmAudio() {
+      if (!bgmEnabled) return null;
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (!masterGain) {
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.68;
+          masterGain.connect(audioCtx.destination);
+        }
+        if (!bgmGain) {
+          bgmGain = audioCtx.createGain();
+          bgmGain.gain.value = 0.82;
+          bgmGain.connect(masterGain || audioCtx.destination);
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function startBgm() {
+      if (!bgmEnabled || bgmPlaying) return;
+      const ctx = ensureBgmAudio();
+      if (!ctx) return;
+      bgmPlaying = true;
+      bgmStep = 0;
+      scheduleBgmStep();
+      clearInterval(bgmTimer);
+      bgmTimer = setInterval(scheduleBgmStep, 250);
+    }
+
+    function stopBgm() {
+      bgmPlaying = false;
+      clearInterval(bgmTimer);
+      bgmTimer = null;
+    }
+
+    function getBgmPattern() {
+      const patterns = {
+        fast: {
+          melody: [523, 659, 784, 659, 698, 880, 784, 659],
+          bass: [131, 131, 196, 196],
+          wave: "triangle"
+        },
+        dessert: {
+          melody: [659, 784, 988, 880, 784, 659, 587, 659],
+          bass: [165, 220, 196, 220],
+          wave: "sine"
+        },
+        spicy: {
+          melody: [587, 698, 784, 932, 784, 698, 622, 698],
+          bass: [147, 147, 185, 185],
+          wave: "square"
+        },
+        final: {
+          melody: [523, 659, 784, 1046, 988, 784, 659, 784],
+          bass: [131, 196, 165, 220],
+          wave: "triangle"
+        }
+      };
+      return patterns[bgmMood] || patterns.fast;
+    }
+
+    function scheduleBgmStep() {
+      if (!bgmPlaying || !bgmEnabled) return;
+      const ctx = ensureBgmAudio();
+      if (!ctx) return;
+
+      const pattern = getBgmPattern();
+      const step = bgmStep % 8;
+      const beat = bgmStep % 4;
+      const now = ctx.currentTime;
+      const tempoBoost = burning ? 0.72 : bossActive ? 0.82 : 1;
+
+      if (!paused && !eatingLocked) {
+        const melodyFreq = pattern.melody[step];
+        const wave = burning ? "square" : pattern.wave;
+        bgmTone(melodyFreq, 0.12 * tempoBoost, wave, now, burning ? 0.20 : 0.15);
+
+        if (step % 2 === 0) {
+          const bassFreq = pattern.bass[Math.floor(beat / 1) % pattern.bass.length];
+          bgmTone(bassFreq, 0.18 * tempoBoost, "triangle", now, 0.095);
+        }
+
+        if (burning && step % 2 === 1) {
+          bgmTone(1108, 0.055, "square", now, 0.11);
+        }
+
+        if (bossActive && step % 2 === 0) {
+          bgmTone(82, 0.10, "sawtooth", now, 0.10);
+        }
+      }
+
+      bgmStep++;
+    }
+
+    function bgmTone(freq, duration, type, startTime, volume) {
+      const ctx = ensureBgmAudio();
+      if (!ctx || !bgmGain) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.0001, startTime);
+        gain.gain.exponentialRampToValueAtTime(Math.max(.0002, volume), startTime + .012);
+        gain.gain.exponentialRampToValueAtTime(.0001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(bgmGain);
+        osc.start(startTime);
+        osc.stop(startTime + duration + .03);
+      } catch (e) {}
+    }
+
+    function ensureAudio() {
+      if (!soundEnabled) return null;
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (!masterGain) {
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.68;
+          masterGain.connect(audioCtx.destination);
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function beep(freq = 600, duration = .06, volume = .08) {
+      if (!soundEnabled) return;
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.value = freq;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(Math.max(0.0001, volume), ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(masterGain || ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration + .02);
+      } catch (e) {}
+    }
+
+    function tone(freq, duration = .1, type = "sine", delay = 0, volume = .25, slideTo = null) {
+      if (!soundEnabled) return;
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const t = ctx.currentTime + delay;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + duration);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(Math.max(.0002, volume), t + .012);
+        gain.gain.exponentialRampToValueAtTime(.0001, t + duration);
+        osc.connect(gain);
+        gain.connect(masterGain || ctx.destination);
+        osc.start(t);
+        osc.stop(t + duration + .03);
+      } catch (e) {}
+    }
+
+    function noise(duration = .12, delay = 0, volume = .18, filterFreq = 900, type = "lowpass") {
+      if (!soundEnabled) return;
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const t = ctx.currentTime + delay;
+      try {
+        const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const src = ctx.createBufferSource();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+        filter.type = type;
+        filter.frequency.value = filterFreq;
+        gain.gain.setValueAtTime(volume, t);
+        gain.gain.exponentialRampToValueAtTime(.0001, t + duration);
+        src.buffer = buffer;
+        src.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain || ctx.destination);
+        src.start(t);
+        src.stop(t + duration + .02);
+      } catch (e) {}
+    }
+
+    function playSound(name) {
+      if (!soundEnabled) return;
+      ensureAudio();
+      switch (name) {
+        case "ui":
+          tone(520, .05, "sine", 0, .20);
+          tone(760, .06, "sine", .045, .18);
+          break;
+        case "stageStart":
+          tone(392, .12, "triangle", 0, .24);
+          tone(523, .12, "triangle", .10, .24);
+          tone(659, .16, "triangle", .20, .26);
+          tone(784, .20, "triangle", .34, .22);
+          break;
+        case "eat":
+          noise(.08, 0, .13, 650, "lowpass");
+          tone(520, .05, "triangle", .02, .15);
+          tone(680, .05, "triangle", .08, .13);
+          break;
+        case "combo":
+          tone(740, .05, "sine", 0, .17);
+          tone(930, .06, "sine", .055, .17);
+          tone(1180, .08, "sine", .115, .16);
+          break;
+        case "spicy":
+          noise(.18, 0, .18, 1600, "highpass");
+          tone(520, .18, "sawtooth", 0, .12, 260);
+          break;
+        case "bad":
+          tone(180, .18, "sawtooth", 0, .20, 90);
+          noise(.16, 0, .13, 260, "lowpass");
+          break;
+        case "heal":
+          tone(760, .05, "sine", 0, .14);
+          tone(1040, .06, "sine", .06, .14);
+          tone(1320, .08, "sine", .13, .12);
+          break;
+        case "hunger":
+          tone(230, .08, "square", 0, .16);
+          tone(190, .10, "square", .12, .14);
+          break;
+        case "mom":
+          tone(330, .12, "triangle", 0, .20);
+          tone(250, .15, "triangle", .12, .18);
+          tone(190, .18, "triangle", .28, .16);
+          break;
+        case "dad":
+          tone(240, .08, "triangle", 0, .18, 420);
+          noise(.07, .04, .10, 700, "lowpass");
+          break;
+        case "sibling":
+          tone(620, .06, "square", 0, .12);
+          tone(470, .06, "square", .07, .12);
+          tone(620, .06, "square", .14, .10);
+          break;
+        case "camera":
+          noise(.035, 0, .20, 2500, "highpass");
+          noise(.06, .06, .15, 1800, "highpass");
+          tone(980, .04, "sine", .025, .10);
+          break;
+        case "skill":
+          tone(440, .08, "triangle", 0, .18, 660);
+          tone(660, .10, "triangle", .08, .18, 990);
+          tone(990, .16, "triangle", .18, .16, 1320);
+          break;
+        case "burning":
+          tone(620, .16, "sawtooth", 0, .13, 1040);
+          tone(1040, .16, "sawtooth", .16, .13, 620);
+          tone(620, .16, "sawtooth", .32, .13, 1040);
+          break;
+        case "countdown":
+          tone(880, .055, "square", 0, .13);
+          break;
+        case "bossStart":
+          noise(.18, 0, .17, 900, "lowpass");
+          tone(180, .20, "sawtooth", 0, .16, 120);
+          tone(740, .12, "square", .22, .12);
+          break;
+        case "bossTap":
+          noise(.045, 0, .16, 520, "lowpass");
+          tone(520, .04, "triangle", 0, .10);
+          break;
+        case "bossSuccess":
+          tone(523, .09, "triangle", 0, .20);
+          tone(659, .09, "triangle", .09, .20);
+          tone(784, .11, "triangle", .18, .20);
+          tone(1046, .22, "triangle", .30, .18);
+          break;
+        case "bossFail":
+          tone(300, .16, "sawtooth", 0, .16, 160);
+          tone(180, .22, "sawtooth", .16, .14, 90);
+          break;
+        case "stageClear":
+          tone(660, .08, "triangle", 0, .18);
+          tone(880, .08, "triangle", .09, .18);
+          tone(990, .16, "triangle", .20, .16);
+          break;
+        case "record":
+          tone(523, .08, "triangle", 0, .20);
+          tone(659, .08, "triangle", .08, .20);
+          tone(784, .08, "triangle", .16, .20);
+          tone(1046, .22, "triangle", .28, .20);
+          noise(.10, .20, .12, 3000, "highpass");
+          break;
+        case "gameOver":
+          tone(330, .15, "triangle", 0, .17, 260);
+          tone(260, .18, "triangle", .16, .15, 180);
+          break;
+      }
+    }
+
+    init();
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+
+</body>
+</html>
